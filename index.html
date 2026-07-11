@@ -2,24 +2,26 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>SIPANDA Mobile</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>SIPANDA - Lapas Kelas IIA Banyuasin</title>
 
-<!-- Tailwind CSS (CDN) -->
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<!-- Tailwind CSS -->
 <script src="https://cdn.tailwindcss.com"></script>
 
-<!-- Alpine.js (CDN) -->
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
+<!-- Chart.js & FullCalendar -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+
+<!-- Alpine.js - CDN Stabil untuk Mobile -->
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.14.3/cdn.min.js"></script>
 
 <!-- Lucide Icons -->
 <script src="https://unpkg.com/lucide@latest"></script>
-
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-
-<!-- FullCalendar -->
-<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -27,96 +29,85 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
 <style>
-* { box-sizing: border-box; }
-
-html, body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
+/* Reset & Force Hide Blogger */
+#navbar-iframe, .navbar, .header-outer, .sidebar-outer, .footer-outer,
+.quickedit, .profile-link, .widget-wrap, .Blog, .common-widget {
+display: none !important;
+visibility: hidden !important;
+height: 0 !important;
+opacity: 0 !important;
 }
 
+/* Root App */
 #sipanda-app-root {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  width: 100%;
-  height: 100%;
-  /* iOS Safari safe area */
-  padding-bottom: env(safe-area-inset-bottom);
-  z-index: 999999999;
-  background: #F4F6F9;
-  overflow: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  display: flex;
-  flex-direction: column;
+position: fixed !important;
+top: 0 !important;
+left: 0 !important;
+right: 0 !important;
+bottom: 0 !important;
+width: 100vw !important;
+height: 100vh !important;
+z-index: 999999999 !important;
+background-color: #F4F6F9 !important;
+overflow-y: auto !important;
+overflow-x: hidden !important;
+font-family: 'Inter', sans-serif;
+-webkit-overflow-scrolling: touch !important;
 }
 
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: #f1f1f1; }
+::-webkit-scrollbar-thumb { background: #C9A227; border-radius: 4px; }
+
+/* Glass Effect */
 .glass {
-  background: rgba(255,255,255,0.95);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+background: rgba(255, 255, 255, 0.85);
+backdrop-filter: blur(12px);
+-webkit-backdrop-filter: blur(12px);
+border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* Scrollable content area */
-.main-content-scroll {
-  flex: 1;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior-y: contain;
-  padding: 12px 12px 80px;
+/* Animasi */
+@keyframes pulse-danger {
+0%, 100% { background-color: #C62828; opacity: 1; }
+50% { background-color: #ff5252; opacity: 0.8; }
+}
+.animate-danger-blink { animation: pulse-danger 1.5s infinite; }
+
+/* Desktop vs Mobile */
+@media (min-width: 1024px) {
+.app-sidebar { display: flex !important; }
+.app-bottombar { display: none !important; }
+}
+@media (max-width: 1023px) {
+.app-sidebar { display: none !important; }
+.app-bottombar { display: flex !important; }
 }
 
-/* Bottom nav — bigger touch targets */
-.app-bottombar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  bottom: env(safe-area-inset-bottom, 0px);
-  z-index: 40;
-}
-.app-bottombar button {
-  min-height: 52px;
-  min-width: 44px;
-}
-.app-bottombar span {
-  font-size: 9px;
-  margin-top: 2px;
-}
-
-/* Modal safe */
-.modal-inner {
-  max-height: 90vh;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-@media (min-width: 768px) {
-  .app-sidebar { display: flex !important; }
-  .app-bottombar { display: none !important; }
-}
-@media (max-width: 767px) {
-  .app-sidebar { display: none !important; }
-  .app-bottombar { display: flex !important; }
+/* Mobile Fix */
+@media (max-width: 640px) {
+#sipanda-app-root { font-size: 14px; }
+.p-6 { padding: 1rem !important; }
+.text-2xl { font-size: 1.25rem !important; }
+.grid-cols-2 { grid-template-columns: 1fr 1fr !important; }
+.gap-4 { gap: 0.75rem !important; }
 }
 </style>
 
 <script>
 // ============================================================
-// FIREBASE CONFIG
+// KONFIGURASI FIREBASE
 // ============================================================
 const IS_PREVIEW = false;
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAvroC_bOa-Mcm8xCcna2TZsFi4dgHdtYI",
-  authDomain: "mytaskplanner-bd32b.firebaseapp.com",
-  projectId: "mytaskplanner-bd32b",
-  storageBucket: "mytaskplanner-bd32b.firebasestorage.app",
-  messagingSenderId: "964822172054",
-  appId: "1:964822172054:web:a67311fe606a1a36ea5db7"
+  apiKey: "AIzaSyCCaOPjOh1UxaliCm0GIJeYv6NJOBGyOtA",
+  authDomain: "sipanda-8045f.firebaseapp.com",
+  projectId: "sipanda-8045f",
+  storageBucket: "sipanda-8045f.firebasestorage.app",
+  messagingSenderId: "791646404329",
+  appId: "1:791646404329:web:1b225b79ee358b2e55ba78"
 };
 // ============================================================
 </script>
@@ -124,234 +115,347 @@ const firebaseConfig = {
 </head>
 <body>
 
-<div id="sipanda-app-root" x-data="sipandaApp()" x-init="initApp()" class="min-h-screen flex flex-col">
+<!-- APP ROOT -->
+<div id="sipanda-app-root" x-data="sipandaApp()" x-init="initApp()" class="text-slate-800 min-h-screen flex flex-col antialiased">
 
-<!-- LOGIN -->
-<div x-show="!isLoggedIn" class="fixed inset-0 z-50 flex items-center justify-center bg-[#0B2341] p-4">
-  <div class="bg-white/95 rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl">
-    <div class="w-16 h-16 bg-[#C9A227] rounded-full flex items-center justify-center mx-auto mb-3">
-      <i data-lucide="shield" class="w-8 h-8 text-white"></i>
-    </div>
-    <h1 class="text-2xl font-bold text-[#0B2341]">SIPANDA</h1>
-    <p class="text-[10px] text-slate-500">Lapas Kelas IIA Banyuasin</p>
-    
-    <form @submit.prevent="handleLogin" class="mt-6 text-left space-y-3">
-      <input type="text" x-model="loginForm.username" placeholder="NIP / Username" class="w-full px-3 py-2 border rounded-lg text-sm">
-      <input type="password" x-model="loginForm.password" placeholder="Password" class="w-full px-3 py-2 border rounded-lg text-sm">
-      <select x-model="loginForm.role" class="w-full px-3 py-2 border rounded-lg text-sm">
-        <option value="admin">Administrator</option>
-        <option value="pegawai">Pegawai</option>
-      </select>
-      <button type="submit" class="w-full bg-[#0B2341] text-white py-2 rounded-lg font-bold">Masuk</button>
-    </form>
-  </div>
+<!-- LOGIN PAGE -->
+<div x-show="!isLoggedIn" class="fixed inset-0 z-50 flex items-center justify-center bg-[#0B2341] p-4" style="background: linear-gradient(135deg, #0B2341 0%, #123B63 100%);">
+<div class="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-6 max-w-sm w-full border border-yellow-500/20 text-center">
+<div class="flex justify-center mb-3">
+<div class="w-16 h-16 bg-[#C9A227] rounded-full flex items-center justify-center shadow-lg border-2 border-white">
+<i data-lucide="shield" class="w-8 h-8 text-white"></i>
+</div>
+</div>
+<h1 class="text-2xl font-extrabold text-[#0B2341]">SIPANDA</h1>
+<p class="text-[10px] font-semibold text-[#123B63] uppercase tracking-wide">Sistem Informasi Pengelolaan Data & Arsip Pegawai</p>
+<p class="text-[10px] text-slate-500">Lapas Kelas IIA Banyuasin</p>
+
+<form @submit.prevent="handleLogin" class="mt-6 text-left space-y-3">
+<div>
+<label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">NIP / Username</label>
+<div class="relative">
+<span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+<i data-lucide="user" class="w-4 h-4"></i>
+</span>
+<input type="text" x-model="loginForm.username" required class="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#C9A227] text-sm" placeholder="Masukkan NIP">
+</div>
+</div>
+<div>
+<label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">Password</label>
+<div class="relative">
+<span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+<i data-lucide="lock" class="w-4 h-4"></i>
+</span>
+<input type="password" x-model="loginForm.password" required class="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#C9A227] text-sm" placeholder="Password">
+</div>
+</div>
+<div>
+<label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">Role</label>
+<select x-model="loginForm.role" class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#C9A227] text-sm bg-white">
+<option value="admin">Administrator</option>
+<option value="pegawai">Pegawai Mandiri</option>
+</select>
+</div>
+<button type="submit" class="w-full bg-[#0B2341] hover:bg-[#123B63] text-white py-2.5 rounded-lg font-bold text-sm transition flex items-center justify-center space-x-2">
+<i data-lucide="log-in" class="w-4 h-4"></i>
+<span>Masuk</span>
+</button>
+</form>
+<div class="mt-4 text-[9px] text-slate-400">© 2026 Kemenimipas RI</div>
+</div>
 </div>
 
 <!-- MAIN APP -->
-<div x-show="isLoggedIn" class="flex-1 flex flex-col overflow-hidden" style="min-height:0">
+<div x-show="isLoggedIn" class="flex-1 flex flex-col lg:flex-row min-h-screen">
 
-  <!-- HEADER -->
-  <header class="glass flex-shrink-0 flex justify-between items-center px-3 py-2 shadow-sm border-b z-30">
-    <div class="flex items-center space-x-2">
-      <div class="w-8 h-8 bg-[#0B2341] text-white rounded-full flex items-center justify-center">
-        <i data-lucide="shield" class="w-4 h-4"></i>
-      </div>
-      <div>
-        <h1 class="text-sm font-bold text-[#0B2341]">SIPANDA</h1>
-        <p class="text-[8px] text-slate-500">Lapas Banyuasin</p>
-      </div>
-    </div>
-    <button @click="showNotifications = !showNotifications" class="relative p-1.5 bg-slate-100 rounded-lg">
-      <i data-lucide="bell" class="w-4 h-4"></i>
-      <span class="absolute -top-1 -right-1 bg-red-600 text-white text-[8px] w-4 h-4 rounded-full flex items-center justify-center" x-text="notifications.length"></span>
-    </button>
-  </header>
+<!-- SIDEBAR DESKTOP -->
+<aside class="app-sidebar fixed inset-y-0 left-0 z-40 w-56 bg-[#0B2341] text-white flex-col border-r border-slate-800 shadow-2xl">
+<div class="p-4 border-b border-slate-800 flex items-center space-x-2">
+<div class="w-8 h-8 bg-[#C9A227] rounded-full flex items-center justify-center">
+<i data-lucide="shield" class="w-4 h-4 text-white"></i>
+</div>
+<div>
+<h2 class="text-sm font-extrabold text-white">SIPANDA</h2>
+<span class="text-[8px] uppercase font-bold text-slate-400">Lapas Banyuasin</span>
+</div>
+</div>
+<nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+<button @click="activeMenu = 'dashboard'" :class="activeMenu === 'dashboard' ? 'bg-[#C9A227] text-[#0B2341] font-bold' : 'hover:bg-white/5 text-slate-300'" class="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-xs transition">
+<i data-lucide="layout-dashboard" class="w-4 h-4"></i><span>Dashboard</span>
+</button>
+<button @click="activeMenu = 'pegawai'" :class="activeMenu === 'pegawai' ? 'bg-[#C9A227] text-[#0B2341] font-bold' : 'hover:bg-white/5 text-slate-300'" class="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-xs transition">
+<i data-lucide="users" class="w-4 h-4"></i><span>Pegawai</span>
+</button>
+<button @click="activeMenu = 'kgb'" :class="activeMenu === 'kgb' ? 'bg-[#C9A227] text-[#0B2341] font-bold' : 'hover:bg-white/5 text-slate-300'" class="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-xs transition">
+<i data-lucide="badge-percent" class="w-4 h-4"></i><span>KGB</span>
+</button>
+<button @click="activeMenu = 'pangkat'" :class="activeMenu === 'pangkat' ? 'bg-[#C9A227] text-[#0B2341] font-bold' : 'hover:bg-white/5 text-slate-300'" class="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-xs transition">
+<i data-lucide="award" class="w-4 h-4"></i><span>Pangkat</span>
+</button>
+<button @click="activeMenu = 'cuti'" :class="activeMenu === 'cuti' ? 'bg-[#C9A227] text-[#0B2341] font-bold' : 'hover:bg-white/5 text-slate-300'" class="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-xs transition">
+<i data-lucide="calendar" class="w-4 h-4"></i><span>Cuti</span>
+</button>
+<button @click="activeMenu = 'laporan'" :class="activeMenu === 'laporan' ? 'bg-[#C9A227] text-[#0B2341] font-bold' : 'hover:bg-white/5 text-slate-300'" class="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-xs transition">
+<i data-lucide="file-text" class="w-4 h-4"></i><span>Laporan</span>
+</button>
+<template x-if="role === 'admin'">
+<button @click="activeMenu = 'admin'" :class="activeMenu === 'admin' ? 'bg-[#C9A227] text-[#0B2341] font-bold' : 'hover:bg-white/5 text-slate-300'" class="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-xs transition">
+<i data-lucide="settings" class="w-4 h-4"></i><span>Admin</span>
+</button>
+</template>
+</nav>
+<div class="p-3 border-t border-slate-800 bg-slate-950/40">
+<div class="flex items-center space-x-2">
+<img src="https://ui-avatars.com/api/?name=Admin+TU&background=C9A227&color=fff&size=32" class="w-8 h-8 rounded-full border border-[#C9A227]">
+<div class="flex-1 min-w-0">
+<p class="text-[10px] font-bold text-white truncate" x-text="sessionUser.nama"></p>
+<p class="text-[8px] text-slate-400 capitalize" x-text="role"></p>
+</div>
+<button @click="handleLogout" class="text-slate-400 hover:text-red-400 p-1">
+<i data-lucide="log-out" class="w-4 h-4"></i>
+</button>
+</div>
+</div>
+</aside>
 
-  <!-- CONTENT -->
-  <div class="main-content-scroll space-y-3">
+<!-- MAIN CONTENT -->
+<main class="flex-1 lg:pl-56 pb-16 lg:pb-0 flex flex-col min-h-screen">
 
-    <!-- DASHBOARD -->
-    <div x-show="activeMenu === 'dashboard'" class="space-y-3">
-      <div class="bg-gradient-to-br from-[#0B2341] to-[#123B63] rounded-2xl p-4 text-white">
-        <h2 class="text-lg font-bold">SIPANDA</h2>
-        <p class="text-[10px] text-slate-300">Lapas Kelas IIA Banyuasin</p>
-        <div class="flex gap-2 mt-3">
-          <button @click="showModalAddPegawai = true" class="bg-[#C9A227] text-slate-900 text-[10px] font-bold px-3 py-1 rounded">+ Pegawai</button>
-          <button @click="showModalAddCuti = true" class="bg-white/20 text-white text-[10px] font-bold px-3 py-1 rounded">+ Cuti</button>
-        </div>
-      </div>
+<!-- HEADER -->
+<header class="glass sticky top-0 z-30 flex items-center justify-between px-3 py-2 shadow-sm border-b border-slate-200">
+<div class="flex items-center space-x-2">
+<span class="lg:hidden w-8 h-8 bg-[#0B2341] text-white rounded-full flex items-center justify-center">
+<i data-lucide="shield" class="w-4 h-4"></i>
+</span>
+<div>
+<h1 class="text-sm font-extrabold text-[#0B2341]">SIPANDA</h1>
+<p class="text-[8px] text-slate-500 font-semibold uppercase">Lapas Banyuasin</p>
+</div>
+</div>
+<div class="flex items-center space-x-2">
+<div class="relative hidden sm:block w-36">
+<input type="text" x-model="searchQuery" @keyup.enter="runSmartSearch()" class="w-full bg-slate-100 border-0 focus:ring-2 focus:ring-[#C9A227] rounded-lg px-3 py-1.5 pl-7 text-xs" placeholder="Cari...">
+<span class="absolute inset-y-0 left-0 flex items-center pl-2 text-slate-400">
+<i data-lucide="search" class="w-3 h-3"></i>
+</span>
+</div>
+<div class="relative">
+<button @click="showNotifications = !showNotifications" class="relative p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition">
+<i data-lucide="bell" class="w-4 h-4"></i>
+<span class="absolute -top-1 -right-1 bg-red-600 text-white font-bold text-[8px] w-4 h-4 rounded-full flex items-center justify-center" x-text="notifications.length"></span>
+</button>
+</div>
+</div>
+</header>
 
-      <div class="grid grid-cols-2 gap-2">
-        <div class="bg-white p-3 rounded-xl shadow-sm border">
-          <p class="text-[8px] font-bold text-slate-500 uppercase">Total Pegawai</p>
-          <p class="text-xl font-bold text-[#0B2341]" x-text="stats.totalPegawai"></p>
-        </div>
-        <div class="bg-white p-3 rounded-xl shadow-sm border">
-          <p class="text-[8px] font-bold text-slate-500 uppercase">Cuti</p>
-          <p class="text-xl font-bold text-amber-600" x-text="stats.pegawaiCuti"></p>
-        </div>
-        <div class="bg-white p-3 rounded-xl shadow-sm border">
-          <p class="text-[8px] font-bold text-slate-500 uppercase">Naik Pangkat</p>
-          <p class="text-xl font-bold text-red-600" x-text="stats.pangkatSegera"></p>
-        </div>
-        <div class="bg-white p-3 rounded-xl shadow-sm border">
-          <p class="text-[8px] font-bold text-slate-500 uppercase">KGB Segera</p>
-          <p class="text-xl font-bold text-yellow-600" x-text="stats.kgbSegera"></p>
-        </div>
-      </div>
+<!-- BODY -->
+<div class="flex-1 p-3 space-y-3 overflow-y-auto">
 
-      <div class="bg-white rounded-2xl p-3 shadow-sm border">
-        <h3 class="font-bold text-xs text-[#0B2341]">Grafik Statistik</h3>
-        <div class="h-40"><canvas id="dashboardMainChart"></canvas></div>
-      </div>
-    </div>
+<!-- DASHBOARD -->
+<div x-show="activeMenu === 'dashboard'" class="space-y-3">
+<div class="grid grid-cols-1 gap-3">
+<div class="bg-gradient-to-br from-[#0B2341] to-[#123B63] rounded-2xl p-4 text-white">
+<span class="bg-[#C9A227] text-slate-950 font-bold text-[8px] tracking-widest uppercase px-2 py-0.5 rounded-full">DASHBOARD</span>
+<h2 class="text-base font-extrabold mt-2">SIPANDA</h2>
+<p class="text-[10px] text-slate-300 mt-1">Lapas Kelas IIA Banyuasin</p>
+<div class="mt-3 flex flex-wrap gap-2">
+<button @click="showModalAddPegawai = true" class="bg-[#C9A227] text-slate-900 font-bold text-[10px] px-3 py-1 rounded-lg">+ Pegawai</button>
+<button @click="showModalAddCuti = true" class="bg-white/15 text-white font-semibold text-[10px] px-3 py-1 rounded-lg">+ Cuti</button>
+</div>
+</div>
+</div>
 
-    <!-- PEGAWAI -->
-    <div x-show="activeMenu === 'pegawai'" class="space-y-3">
-      <div class="flex justify-between items-center">
-        <h2 class="text-base font-bold text-[#0B2341]">Data Pegawai</h2>
-        <button @click="showModalAddPegawai = true" class="bg-[#0B2341] text-white text-[10px] font-bold px-3 py-1 rounded">+ Tambah</button>
-      </div>
-      <div class="bg-white rounded-2xl p-3 shadow-sm border">
-        <input type="text" x-model="pegawaiSearch" placeholder="Cari..." class="w-full px-3 py-2 border rounded-lg text-sm">
-        <div class="mt-2 space-y-1 max-h-96 overflow-y-auto">
-          <template x-for="(p, index) in filteredPegawaiList.slice(0, 15)" :key="index">
-            <div class="flex justify-between items-center p-2 border-b text-sm">
-              <div>
-                <p class="font-bold" x-text="p.nama"></p>
-                <p class="text-[10px] text-slate-500" x-text="p.nip"></p>
-              </div>
-              <div class="text-right">
-                <p class="text-[10px]" x-text="p.golongan"></p>
-                <button @click="viewPegawaiProfileByNip(p.nip)" class="text-[10px] text-blue-600">Lihat</button>
-              </div>
-            </div>
-          </template>
-        </div>
-      </div>
-    </div>
+<div class="grid grid-cols-2 gap-2">
+<div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200">
+<p class="text-[8px] font-bold text-slate-500 uppercase">Total Pegawai</p>
+<p class="text-xl font-extrabold text-[#0B2341]" x-text="stats.totalPegawai"></p>
+</div>
+<div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200">
+<p class="text-[8px] font-bold text-slate-500 uppercase">Sedang Cuti</p>
+<p class="text-xl font-extrabold text-amber-600" x-text="stats.pegawaiCuti"></p>
+</div>
+<div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200">
+<p class="text-[8px] font-bold text-slate-500 uppercase">Naik Pangkat</p>
+<p class="text-xl font-extrabold text-red-600" x-text="stats.pangkatSegera"></p>
+</div>
+<div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200">
+<p class="text-[8px] font-bold text-slate-500 uppercase">KGB Segera</p>
+<p class="text-xl font-extrabold text-yellow-600" x-text="stats.kgbSegera"></p>
+</div>
+</div>
 
-    <!-- CUTI -->
-    <div x-show="activeMenu === 'cuti'" class="space-y-3">
-      <div class="flex justify-between items-center">
-        <h2 class="text-base font-bold text-[#0B2341]">Cuti</h2>
-        <button @click="showModalAddCuti = true" class="bg-[#0B2341] text-white text-[10px] font-bold px-3 py-1 rounded">+ Cuti</button>
-      </div>
-      <div class="bg-white rounded-2xl p-3 shadow-sm border">
-        <div id="fullCalendarTarget" class="text-[10px]"></div>
-      </div>
-    </div>
+<div class="bg-white rounded-2xl p-3 shadow-sm border border-slate-200">
+<h3 class="font-bold text-[#0B2341] text-xs">Grafik Statistik</h3>
+<div class="h-40"><canvas id="dashboardMainChart"></canvas></div>
+</div>
+</div>
 
-    <!-- KGB -->
-    <div x-show="activeMenu === 'kgb'" class="space-y-3">
-      <h2 class="text-base font-bold text-[#0B2341]">Kenaikan Gaji</h2>
-      <div class="bg-white rounded-2xl p-3 shadow-sm border">
-        <div class="space-y-1">
-          <template x-for="(p, index) in pegawaiList.slice(0, 10)" :key="index">
-            <div class="flex justify-between p-2 border-b text-sm">
-              <span x-text="p.nama"></span>
-              <span x-text="p.kgbCountdownDays + ' hari'" class="font-bold" :class="p.kgbCountdownDays < 30 ? 'text-red-600' : 'text-slate-600'"></span>
-            </div>
-          </template>
-        </div>
-      </div>
-    </div>
+<!-- DATA PEGAWAI -->
+<div x-show="activeMenu === 'pegawai'" class="space-y-3">
+<div class="flex flex-col gap-2">
+<h2 class="text-base font-extrabold text-[#0B2341]">Data Pegawai</h2>
+<div class="flex flex-wrap gap-1">
+<button @click="showModalAddPegawai = true" class="bg-[#0B2341] text-white font-bold text-[10px] px-3 py-1.5 rounded-lg">+ Tambah</button>
+<button @click="exportDataToExcel()" class="bg-emerald-600 text-white font-bold text-[10px] px-3 py-1.5 rounded-lg">Excel</button>
+<button @click="exportDataToPDF()" class="bg-red-600 text-white font-bold text-[10px] px-3 py-1.5 rounded-lg">PDF</button>
+</div>
+</div>
 
-    <!-- PANGKAT -->
-    <div x-show="activeMenu === 'pangkat'" class="space-y-3">
-      <h2 class="text-base font-bold text-[#0B2341]">Kepangkatan</h2>
-      <div class="bg-white rounded-2xl p-3 shadow-sm border">
-        <div class="space-y-1">
-          <template x-for="(p, index) in pegawaiList.slice(0, 10)" :key="index">
-            <div class="flex justify-between p-2 border-b text-sm">
-              <span x-text="p.nama"></span>
-              <span x-text="p.pangkatCountdownDays + ' hari'" class="font-bold" :class="p.pangkatCountdownDays < 30 ? 'text-red-600' : 'text-slate-600'"></span>
-            </div>
-          </template>
-        </div>
-      </div>
-    </div>
+<div class="bg-white rounded-2xl p-3 shadow-sm border border-slate-200">
+<input type="text" x-model="pegawaiSearch" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs" placeholder="Cari pegawai...">
+<div class="overflow-x-auto mt-2">
+<table class="w-full text-[10px]">
+<thead class="bg-slate-50 font-bold text-[#0B2341]">
+<tr><th class="p-2">Nama</th><th class="p-2">Gol</th><th class="p-2">Pangkat</th><th class="p-2">KGB</th><th class="p-2">Aksi</th></tr>
+</thead>
+<tbody>
+<template x-for="(pegawai, index) in filteredPegawaiList.slice(0, 10)" :key="index">
+<tr class="border-t border-slate-100">
+<td class="p-2"><span class="font-bold" x-text="pegawai.nama"></span></td>
+<td class="p-2" x-text="pegawai.golongan"></td>
+<td class="p-2" x-text="pegawai.pangkatCountdownDays + 'h'"></td>
+<td class="p-2" x-text="pegawai.kgbCountdownDays + 'h'"></td>
+<td class="p-2"><button @click="viewPegawaiProfileByNip(pegawai.nip)" class="bg-[#123B63] text-white px-2 py-1 rounded text-[8px]">Profil</button></td>
+</tr>
+</template>
+</tbody>
+</table>
+</div>
+</div>
+</div>
 
-    <!-- LAPORAN -->
-    <div x-show="activeMenu === 'laporan'" class="space-y-3">
-      <h2 class="text-base font-bold text-[#0B2341]">Laporan</h2>
-      <div class="grid grid-cols-2 gap-2">
-        <button @click="triggerReportExport('Pangkat')" class="bg-[#123B63] text-white text-[10px] font-bold py-2 rounded">Pangkat</button>
-        <button @click="triggerReportExport('KGB')" class="bg-[#123B63] text-white text-[10px] font-bold py-2 rounded">KGB</button>
-        <button @click="triggerReportExport('Pegawai')" class="bg-[#123B63] text-white text-[10px] font-bold py-2 rounded">Rekapitulasi</button>
-        <button @click="exportDatabaseBackup()" class="bg-[#C9A227] text-slate-900 text-[10px] font-bold py-2 rounded">Backup</button>
-      </div>
-    </div>
+<!-- CUTI -->
+<div x-show="activeMenu === 'cuti'" class="space-y-3">
+<div class="flex justify-between items-center">
+<h2 class="text-base font-extrabold text-[#0B2341]">Agenda Cuti</h2>
+<button @click="showModalAddCuti = true" class="bg-[#0B2341] text-white text-[10px] font-bold px-3 py-1.5 rounded-lg">+ Cuti</button>
+</div>
+<div class="bg-white rounded-2xl p-3 shadow-sm border border-slate-200">
+<div id="fullCalendarTarget" class="text-[10px]"></div>
+</div>
+</div>
 
-    <!-- ADMIN -->
-    <div x-show="activeMenu === 'admin'" class="space-y-3">
-      <h2 class="text-base font-bold text-[#0B2341]">Admin</h2>
-      <button @click="exportDatabaseBackup()" class="w-full bg-[#0B2341] text-white py-2 rounded font-bold text-sm">Backup Database</button>
-    </div>
+<!-- KGB -->
+<div x-show="activeMenu === 'kgb'" class="space-y-3">
+<h2 class="text-base font-extrabold text-[#0B2341]">Kenaikan Gaji Berkala</h2>
+<div class="bg-white rounded-2xl p-3 shadow-sm border border-slate-200 overflow-x-auto">
+<table class="w-full text-[10px]">
+<thead class="bg-slate-50 font-bold"><tr><th class="p-2">Nama</th><th class="p-2">KGB</th><th class="p-2">Sisa</th></tr></thead>
+<tbody>
+<template x-for="(pegawai, index) in pegawaiList.slice(0, 10)" :key="index">
+<tr class="border-t"><td class="p-2" x-text="pegawai.nama"></td><td class="p-2" x-text="pegawai.tglKgbBerikutnya"></td><td class="p-2" x-text="pegawai.kgbCountdownDays + 'h'"></td></tr>
+</template>
+</tbody>
+</table>
+</div>
+</div>
 
-  </div>
+<!-- PANGKAT -->
+<div x-show="activeMenu === 'pangkat'" class="space-y-3">
+<h2 class="text-base font-extrabold text-[#0B2341]">Kepangkatan</h2>
+<div class="bg-white rounded-2xl p-3 shadow-sm border border-slate-200 overflow-x-auto">
+<table class="w-full text-[10px]">
+<thead class="bg-slate-50 font-bold"><tr><th class="p-2">Nama</th><th class="p-2">Gol</th><th class="p-2">Sisa</th></tr></thead>
+<tbody>
+<template x-for="(pegawai, index) in pegawaiList.slice(0, 10)" :key="index">
+<tr class="border-t"><td class="p-2" x-text="pegawai.nama"></td><td class="p-2" x-text="pegawai.golongan"></td><td class="p-2" x-text="pegawai.pangkatCountdownDays + 'h'"></td></tr>
+</template>
+</tbody>
+</table>
+</div>
+</div>
 
-  <!-- BOTTOM NAV -->
-  <nav class="app-bottombar bg-[#0B2341] border-t border-slate-700 flex justify-around items-center px-1" style="padding-bottom: max(8px, env(safe-area-inset-bottom));">
-    <button @click="activeMenu = 'dashboard'; $nextTick(() => lucide.createIcons())" :class="activeMenu === 'dashboard' ? 'text-[#C9A227]' : 'text-slate-400'" class="flex flex-col items-center py-2 px-3">
-      <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-      <span>Home</span>
-    </button>
-    <button @click="activeMenu = 'pegawai'; $nextTick(() => lucide.createIcons())" :class="activeMenu === 'pegawai' ? 'text-[#C9A227]' : 'text-slate-400'" class="flex flex-col items-center py-2 px-3">
-      <i data-lucide="users" class="w-5 h-5"></i>
-      <span>Pegawai</span>
-    </button>
-    <button @click="activeMenu = 'kgb'; $nextTick(() => lucide.createIcons())" :class="activeMenu === 'kgb' ? 'text-[#C9A227]' : 'text-slate-400'" class="flex flex-col items-center py-2 px-3">
-      <i data-lucide="badge-percent" class="w-5 h-5"></i>
-      <span>KGB</span>
-    </button>
-    <button @click="activeMenu = 'cuti'; $nextTick(() => { lucide.createIcons(); initCalendar(); })" :class="activeMenu === 'cuti' ? 'text-[#C9A227]' : 'text-slate-400'" class="flex flex-col items-center py-2 px-3">
-      <i data-lucide="calendar" class="w-5 h-5"></i>
-      <span>Cuti</span>
-    </button>
-    <button @click="handleLogout" class="text-red-400 flex flex-col items-center py-2 px-3">
-      <i data-lucide="log-out" class="w-5 h-5"></i>
-      <span>Keluar</span>
-    </button>
-  </nav>
+<!-- LAPORAN -->
+<div x-show="activeMenu === 'laporan'" class="space-y-3">
+<h2 class="text-base font-extrabold text-[#0B2341]">Laporan</h2>
+<div class="grid grid-cols-2 gap-2">
+<button @click="triggerReportExport('Pangkat')" class="bg-[#123B63] text-white text-[10px] font-bold py-2 rounded-lg">Laporan Pangkat</button>
+<button @click="triggerReportExport('KGB')" class="bg-[#123B63] text-white text-[10px] font-bold py-2 rounded-lg">Laporan KGB</button>
+<button @click="triggerReportExport('Pegawai')" class="bg-[#123B63] text-white text-[10px] font-bold py-2 rounded-lg">Rekapitulasi</button>
+<button @click="exportDatabaseBackup()" class="bg-[#C9A227] text-slate-900 text-[10px] font-bold py-2 rounded-lg">Backup JSON</button>
+</div>
+</div>
+
+<!-- ADMIN -->
+<div x-show="activeMenu === 'admin'" class="space-y-3">
+<h2 class="text-base font-extrabold text-[#0B2341]">Admin Console</h2>
+<div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-2">
+<button @click="exportDatabaseBackup()" class="w-full bg-[#0B2341] text-white text-[10px] font-bold py-2 rounded-lg">Ekspor Database</button>
+</div>
+</div>
 
 </div>
 
-<!-- MODAL PEGAWAI -->
-<div x-show="showModalAddPegawai" class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-3" style="display:none;">
-  <div class="bg-white rounded-2xl w-full max-w-sm p-4 max-h-[90vh] overflow-y-auto">
-    <h3 class="font-bold text-sm mb-3">Tambah Pegawai</h3>
-    <form @submit.prevent="saveNewPegawai" class="space-y-3">
-      <input type="text" x-model="newPegawaiForm.nip" placeholder="NIP" class="w-full px-3 py-2 border rounded-lg text-sm">
-      <input type="text" x-model="newPegawaiForm.nama" placeholder="Nama" class="w-full px-3 py-2 border rounded-lg text-sm">
-      <input type="text" x-model="newPegawaiForm.jabatan" placeholder="Jabatan" class="w-full px-3 py-2 border rounded-lg text-sm">
-      <div class="flex gap-2">
-        <button type="button" @click="showModalAddPegawai = false" class="flex-1 bg-slate-100 py-2 rounded font-bold">Batal</button>
-        <button type="submit" class="flex-1 bg-[#0B2341] text-white py-2 rounded font-bold">Simpan</button>
-      </div>
-    </form>
-  </div>
+<!-- BOTTOM NAV -->
+<nav class="app-bottombar fixed bottom-0 left-0 right-0 z-40 bg-[#0B2341] border-t border-slate-800 py-1 px-1 flex justify-around items-center shadow-lg">
+<button @click="activeMenu = 'dashboard'" :class="activeMenu === 'dashboard' ? 'text-[#C9A227]' : 'text-slate-400'" class="flex flex-col items-center p-1">
+<i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+<span class="text-[7px]">Beranda</span>
+</button>
+<button @click="activeMenu = 'pegawai'" :class="activeMenu === 'pegawai' ? 'text-[#C9A227]' : 'text-slate-400'" class="flex flex-col items-center p-1">
+<i data-lucide="users" class="w-4 h-4"></i>
+<span class="text-[7px]">Pegawai</span>
+</button>
+<button @click="activeMenu = 'kgb'" :class="activeMenu === 'kgb' ? 'text-[#C9A227]' : 'text-slate-400'" class="flex flex-col items-center p-1">
+<i data-lucide="badge-percent" class="w-4 h-4"></i>
+<span class="text-[7px]">KGB</span>
+</button>
+<button @click="activeMenu = 'cuti'" :class="activeMenu === 'cuti' ? 'text-[#C9A227]' : 'text-slate-400'" class="flex flex-col items-center p-1">
+<i data-lucide="calendar" class="w-4 h-4"></i>
+<span class="text-[7px]">Cuti</span>
+</button>
+<button @click="handleLogout" class="text-red-400 flex flex-col items-center p-1">
+<i data-lucide="log-out" class="w-4 h-4"></i>
+<span class="text-[7px]">Keluar</span>
+</button>
+</nav>
+
+</main>
 </div>
 
-<!-- MODAL CUTI -->
-<div x-show="showModalAddCuti" class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-3" style="display:none;">
-  <div class="bg-white rounded-2xl w-full max-w-sm p-4 max-h-[90vh] overflow-y-auto">
-    <h3 class="font-bold text-sm mb-3">Tambah Cuti</h3>
-    <form @submit.prevent="saveNewCuti" class="space-y-3">
-      <select x-model="newCutiForm.nip" class="w-full px-3 py-2 border rounded-lg text-sm">
-        <option value="">Pilih Pegawai</option>
-        <template x-for="(p, index) in pegawaiList" :key="index">
-          <option :value="p.nip" x-text="p.nama"></option>
-        </template>
-      </select>
-      <input type="date" x-model="newCutiForm.tanggalMulai" class="w-full px-3 py-2 border rounded-lg text-sm">
-      <input type="date" x-model="newCutiForm.tanggalSelesai" class="w-full px-3 py-2 border rounded-lg text-sm">
-      <div class="flex gap-2">
-        <button type="button" @click="showModalAddCuti = false" class="flex-1 bg-slate-100 py-2 rounded font-bold">Batal</button>
-        <button type="submit" class="flex-1 bg-[#2E7D32] text-white py-2 rounded font-bold">Simpan</button>
-      </div>
-    </form>
-  </div>
+<!-- MODAL TAMBAH PEGAWAI -->
+<div x-show="showModalAddPegawai" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3" style="display: none;">
+<div class="bg-white rounded-2xl w-full max-w-sm max-h-[90vh] overflow-y-auto p-4">
+<h3 class="font-bold text-sm mb-3">Tambah Pegawai</h3>
+<form @submit.prevent="saveNewPegawai" class="space-y-3 text-xs">
+<input type="text" x-model="newPegawaiForm.nip" placeholder="NIP" required class="w-full px-3 py-2 border rounded-lg">
+<input type="text" x-model="newPegawaiForm.nama" placeholder="Nama" required class="w-full px-3 py-2 border rounded-lg">
+<select x-model="newPegawaiForm.golongan" class="w-full px-3 py-2 border rounded-lg">
+<option value="III/a">III/a</option><option value="III/b">III/b</option><option value="III/c">III/c</option><option value="IV/a">IV/a</option>
+</select>
+<input type="text" x-model="newPegawaiForm.jabatan" placeholder="Jabatan" class="w-full px-3 py-2 border rounded-lg">
+<div class="flex gap-2">
+<button type="button" @click="showModalAddPegawai = false" class="flex-1 bg-slate-100 py-2 rounded-lg font-bold">Batal</button>
+<button type="submit" class="flex-1 bg-[#0B2341] text-white py-2 rounded-lg font-bold">Simpan</button>
+</div>
+</form>
+</div>
+</div>
+
+<!-- MODAL TAMBAH CUTI -->
+<div x-show="showModalAddCuti" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3" style="display: none;">
+<div class="bg-white rounded-2xl w-full max-w-sm p-4">
+<h3 class="font-bold text-sm mb-3">Tambah Cuti</h3>
+<form @submit.prevent="saveNewCuti" class="space-y-3 text-xs">
+<select x-model="newCutiForm.nip" required class="w-full px-3 py-2 border rounded-lg">
+<option value="">Pilih Pegawai</option>
+<template x-for="(p, index) in pegawaiList" :key="index">
+<option :value="p.nip" x-text="p.nama"></option>
+</template>
+</select>
+<select x-model="newCutiForm.jenisCuti" class="w-full px-3 py-2 border rounded-lg">
+<option value="Cuti Tahunan">Cuti Tahunan</option>
+<option value="Cuti Sakit">Cuti Sakit</option>
+<option value="Cuti Izin">Cuti Izin</option>
+</select>
+<input type="date" x-model="newCutiForm.tanggalMulai" required class="w-full px-3 py-2 border rounded-lg">
+<input type="date" x-model="newCutiForm.tanggalSelesai" required class="w-full px-3 py-2 border rounded-lg">
+<div class="flex gap-2">
+<button type="button" @click="showModalAddCuti = false" class="flex-1 bg-slate-100 py-2 rounded-lg font-bold">Batal</button>
+<button type="submit" class="flex-1 bg-[#2E7D32] text-white py-2 rounded-lg font-bold">Simpan</button>
+</div>
+</form>
+</div>
 </div>
 
 </div>
@@ -375,42 +479,54 @@ if (!IS_PREVIEW) {
 }
 
 // ============================================================
-// APP
+// APLIKASI
 // ============================================================
 function sipandaApp() {
   return {
     isLoggedIn: false,
     role: 'admin',
-    sessionUser: { nama: 'Admin', nip: '197605212001011002' },
+    sessionUser: { nama: 'Admin TU', nip: '197605212001011002' },
     activeMenu: 'dashboard',
     pegawaiSearch: '',
+    filterGolongan: '',
+    filterUrgensi: '',
+    searchQuery: '',
     showNotifications: false,
+    showPdfViewer: false,
+    previewDoc: { nomor: '', tanggal: '', namaFile: '', fileUrl: '' },
     showModalAddPegawai: false,
     showModalAddCuti: false,
     loginForm: { username: '', password: '', role: 'admin' },
+    newTodoText: '',
     newPegawaiForm: { nip: '', nama: '', golongan: 'III/a', jabatan: '', noHp: '', email: '' },
     newCutiForm: { nip: '', jenisCuti: 'Cuti Tahunan', tanggalMulai: '', tanggalSelesai: '', keterangan: '' },
     pegawaiList: [],
     cutiList: [],
+    prioritasList: [],
     notifications: [],
+    auditLogs: [],
     todoList: [],
-    stats: { totalPegawai: 0, pegawaiCuti: 0, pegawaiCutiName: 'Tidak ada', pangkatSegera: 0, kgbSegera: 0 },
+    stats: { totalPegawai: 0, pegawaiCuti: 0, pegawaiCutiName: 'Tidak ada', pangkatSegera: 0, kgbSegera: 0, skpBelumUpload: 0, skJabatanBelumUpload: 0, dokumenBelumLengkap: 0, pensiunSegera: 0 },
+    selectedPegawai: null,
 
     async initApp() {
       await this.syncDatabase();
       this.generateNotifications();
-      // Re-run icons after Alpine renders
-      this.$nextTick(() => {
-        setTimeout(() => {
-          lucide.createIcons();
-          this.initChart();
-        }, 100);
-      });
+      this.generateLogs();
+      setTimeout(() => {
+        lucide.createIcons();
+        this.initChart();
+        this.initCalendar();
+      }, 500);
     },
 
     async syncDatabase() {
       if (IS_PREVIEW || !db) {
+        console.log("📦 Using Local Storage");
         let localPegawai = localStorage.getItem('sipanda_pegawai');
+        let localCuti = localStorage.getItem('sipanda_cuti');
+        let localTodo = localStorage.getItem('sipanda_todo');
+
         if (!localPegawai) {
           const dummy = this.generateDummyPegawaiDataRaw();
           localStorage.setItem('sipanda_pegawai', JSON.stringify(dummy));
@@ -418,7 +534,7 @@ function sipandaApp() {
         } else {
           this.pegawaiList = JSON.parse(localPegawai);
         }
-        let localCuti = localStorage.getItem('sipanda_cuti');
+
         if (!localCuti) {
           const dummyCuti = [{ cutiId: 'c1', nip: this.pegawaiList[0]?.nip || '', nama: this.pegawaiList[0]?.nama || '', jenisCuti: 'Cuti Tahunan', tanggalMulai: '2026-07-15', tanggalSelesai: '2026-07-20', status: 'Disetujui' }];
           localStorage.setItem('sipanda_cuti', JSON.stringify(dummyCuti));
@@ -426,24 +542,44 @@ function sipandaApp() {
         } else {
           this.cutiList = JSON.parse(localCuti);
         }
+
+        if (!localTodo) {
+          const dummyTodo = [{ id: 1, task: "Verifikasi Berkas", done: false }];
+          localStorage.setItem('sipanda_todo', JSON.stringify(dummyTodo));
+          this.todoList = dummyTodo;
+        } else {
+          this.todoList = JSON.parse(localTodo);
+        }
+
       } else {
+        console.log("☁️ Using Firebase Firestore");
         try {
           const pegawaiSnap = await db.collection('artifacts').doc('sipanda').collection('public').doc('data').collection('pegawai').get();
           if (pegawaiSnap.empty) {
+            console.log("📤 Database kosong, mengisi data dummy...");
             await this.autoSetupDatabaseFirebase();
             return this.syncDatabase();
           }
           let listPegawai = [];
           pegawaiSnap.forEach(doc => listPegawai.push(doc.data()));
           this.pegawaiList = listPegawai;
+          console.log("✅ " + listPegawai.length + " pegawai loaded");
+
           const cutiSnap = await db.collection('artifacts').doc('sipanda').collection('public').doc('data').collection('cuti').get();
           let listCuti = [];
           cutiSnap.forEach(doc => listCuti.push(doc.data()));
           this.cutiList = listCuti;
+
+          const todoSnap = await db.collection('artifacts').doc('sipanda').collection('public').doc('data').collection('todo').get();
+          let listTodo = [];
+          todoSnap.forEach(doc => listTodo.push(doc.data()));
+          this.todoList = listTodo;
+
         } catch (err) {
           console.error("❌ Firestore error:", err);
         }
       }
+      this.selectedPegawai = this.pegawaiList[0] || null;
       this.recalculateSystemStats();
     },
 
@@ -455,8 +591,23 @@ function sipandaApp() {
         const docRef = db.collection('artifacts').doc('sipanda').collection('public').doc('data').collection('pegawai').doc(p.nip);
         batch.set(docRef, p);
       });
+      const todoRef = db.collection('artifacts').doc('sipanda').collection('public').doc('data').collection('todo').doc('t1');
+      batch.set(todoRef, { id: 1, task: "Verifikasi Berkas", done: false });
       await batch.commit();
       console.log("✅ Firebase seeded!");
+    },
+
+    async updatePegawaiInStorage(pegawai) {
+      if (IS_PREVIEW || !db) {
+        const idx = this.pegawaiList.findIndex(p => p.nip === pegawai.nip);
+        if (idx !== -1) {
+          this.pegawaiList[idx] = pegawai;
+          localStorage.setItem('sipanda_pegawai', JSON.stringify(this.pegawaiList));
+        }
+      } else {
+        await db.collection('artifacts').doc('sipanda').collection('public').doc('data').collection('pegawai').doc(pegawai.nip).set(pegawai);
+      }
+      this.recalculateSystemStats();
     },
 
     async saveNewPegawai() {
@@ -467,15 +618,27 @@ function sipandaApp() {
       const newPegawai = {
         nip: this.newPegawaiForm.nip,
         nama: this.newPegawaiForm.nama,
-        golongan: 'III/a',
+        pangkat: this.newPegawaiForm.golongan === 'III/a' ? 'Penata Muda' : 'Penata',
+        golongan: this.newPegawaiForm.golongan,
         jabatan: this.newPegawaiForm.jabatan || '-',
-        email: '-',
-        noHp: '-',
+        gender: 'Laki-laki',
+        tglLahir: '1988-12-12',
+        tmtCpns: '2015-01-01',
+        tmtPns: '2016-03-01',
+        email: this.newPegawaiForm.email || '-',
+        noHp: this.newPegawaiForm.noHp || '-',
         pangkatCountdownDays: 120,
         kgbCountdownDays: 85,
         progressBerkas: 20,
+        tglKgbTerakhir: "2024-10-01",
         tglKgbBerikutnya: "2026-10-01",
+        tglPangkatTerakhir: "2022-04-01",
         tglPangkatBerikutnya: "2026-04-01",
+        dokumen: {
+          skPangkat: { nomor: '', tanggal: '', namaFile: '', fileUrl: '' },
+          skJabatan: { nomor: '', tanggal: '', namaFile: '', fileUrl: '' },
+          skpKgb: { nilai: '85', predikat: 'Baik', tahun: '2025' }
+        }
       };
       this.pegawaiList.unshift(newPegawai);
       if (IS_PREVIEW || !db) {
@@ -485,24 +648,36 @@ function sipandaApp() {
       }
       this.showModalAddPegawai = false;
       this.recalculateSystemStats();
-      alert('✅ Pegawai ' + newPegawai.nama + ' berhasil!');
+      alert('✅ Pegawai ' + newPegawai.nama + ' berhasil ditambahkan!');
       this.newPegawaiForm = { nip: '', nama: '', golongan: 'III/a', jabatan: '', noHp: '', email: '' };
     },
 
     async saveNewCuti() {
-      if (!this.newCutiForm.nip || !this.newCutiForm.tanggalMulai || !this.newCutiForm.tanggalSelesai) {
-        alert('⚠️ Semua field wajib diisi!');
+      if (!this.newCutiForm.nip || this.newCutiForm.nip === '') {
+        alert('⚠️ Silakan pilih pegawai!');
+        return;
+      }
+      if (!this.newCutiForm.tanggalMulai || !this.newCutiForm.tanggalSelesai) {
+        alert('⚠️ Isi tanggal!');
+        return;
+      }
+      if (this.newCutiForm.tanggalSelesai < this.newCutiForm.tanggalMulai) {
+        alert('⚠️ Tanggal selesai harus lebih besar!');
         return;
       }
       const matched = this.pegawaiList.find(p => p.nip === this.newCutiForm.nip);
-      if (!matched) { alert('⚠️ Pegawai tidak ditemukan!'); return; }
+      if (!matched) {
+        alert('⚠️ Data pegawai tidak ditemukan!');
+        return;
+      }
       const newCuti = {
         cutiId: 'cuti_' + Date.now(),
         nip: this.newCutiForm.nip,
         nama: matched.nama,
-        jenisCuti: 'Cuti Tahunan',
+        jenisCuti: this.newCutiForm.jenisCuti,
         tanggalMulai: this.newCutiForm.tanggalMulai,
         tanggalSelesai: this.newCutiForm.tanggalSelesai,
+        keterangan: this.newCutiForm.keterangan || '-',
         status: 'Disetujui'
       };
       this.cutiList.unshift(newCuti);
@@ -513,8 +688,37 @@ function sipandaApp() {
       }
       this.showModalAddCuti = false;
       this.recalculateSystemStats();
+      this.newCutiForm = { nip: '', jenisCuti: 'Cuti Tahunan', tanggalMulai: '', tanggalSelesai: '', keterangan: '' };
       setTimeout(() => { this.initCalendar(); }, 300);
-      alert('✅ Cuti ' + matched.nama + ' berhasil!');
+      alert('✅ Usulan Cuti ' + matched.nama + ' berhasil!');
+    },
+
+    handleDocUpload(event, docType) {
+      const file = event.target.files[0];
+      if (!file) return;
+      if (file.type !== "application/pdf") {
+        alert("File wajib PDF!");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const base64Data = e.target.result;
+        const skNomor = prompt("Masukkan Nomor SK:") || "SK/" + Date.now();
+        if (!this.selectedPegawai.dokumen) this.selectedPegawai.dokumen = {};
+        this.selectedPegawai.dokumen[docType] = {
+          nomor: skNomor,
+          tanggal: new Date().toISOString().split('T')[0],
+          namaFile: file.name,
+          fileUrl: base64Data
+        };
+        let score = 20;
+        if (this.selectedPegawai.dokumen.skPangkat && this.selectedPegawai.dokumen.skPangkat.fileUrl) score += 40;
+        if (this.selectedPegawai.dokumen.skJabatan && this.selectedPegawai.dokumen.skJabatan.fileUrl) score += 40;
+        this.selectedPegawai.progressBerkas = score;
+        await this.updatePegawaiInStorage(this.selectedPegawai);
+        alert('✅ Dokumen ' + file.name + ' berhasil!');
+      };
+      reader.readAsDataURL(file);
     },
 
     handleLogin() {
@@ -523,46 +727,89 @@ function sipandaApp() {
       if (this.role === 'pegawai') {
         const matched = this.pegawaiList.find(p => p.nip === this.loginForm.username) || this.pegawaiList[0];
         this.sessionUser = { nama: matched?.nama || 'Pegawai', nip: matched?.nip || '' };
+        if (matched) this.viewPegawaiProfileByNip(matched.nip);
       } else {
         this.sessionUser = { nama: 'Admin TU', nip: '197605212001011002' };
         this.activeMenu = 'dashboard';
       }
-      this.$nextTick(() => {
-        setTimeout(() => {
-          lucide.createIcons();
-          this.initChart();
-        }, 150);
-      });
+      setTimeout(() => {
+        lucide.createIcons();
+        this.initChart();
+        this.initCalendar();
+      }, 300);
     },
 
     handleLogout() { this.isLoggedIn = false; },
 
+    toggleTodo(id) {
+      const matched = this.todoList.find(t => t.id === id);
+      if (matched) {
+        matched.done = !matched.done;
+        if (IS_PREVIEW || !db) {
+          localStorage.setItem('sipanda_todo', JSON.stringify(this.todoList));
+        } else {
+          db.collection('artifacts').doc('sipanda').collection('public').doc('data').collection('todo').doc('t' + id).update({ done: matched.done });
+        }
+      }
+    },
+
+    addTodo() {
+      if (!this.newTodoText.trim()) return;
+      const newId = Date.now();
+      const newTodo = { id: newId, task: this.newTodoText, done: false };
+      this.todoList.push(newTodo);
+      if (IS_PREVIEW || !db) {
+        localStorage.setItem('sipanda_todo', JSON.stringify(this.todoList));
+      } else {
+        db.collection('artifacts').doc('sipanda').collection('public').doc('data').collection('todo').doc('t' + newId).set(newTodo);
+      }
+      this.newTodoText = '';
+    },
+
     recalculateSystemStats() {
-      this.stats.totalPegawai = this.pegawaiList.length;
-      this.stats.pegawaiCuti = this.cutiList.length;
+      const total = this.pegawaiList.length;
+      const cutiCount = this.cutiList.length;
+      this.stats.totalPegawai = total;
+      this.stats.pegawaiCuti = cutiCount;
       this.stats.pegawaiCutiName = this.cutiList.map(c => c.nama).join(', ') || 'Nihil';
       this.stats.pangkatSegera = this.pegawaiList.filter(p => p.pangkatCountdownDays <= 180).length;
       this.stats.kgbSegera = this.pegawaiList.filter(p => p.kgbCountdownDays <= 180).length;
+      this.stats.skpBelumUpload = this.pegawaiList.filter(p => !p.dokumen?.skPangkat?.fileUrl).length;
+      this.stats.skJabatanBelumUpload = this.pegawaiList.filter(p => !p.dokumen?.skJabatan?.fileUrl).length;
+      this.stats.dokumenBelumLengkap = this.pegawaiList.filter(p => (p.progressBerkas || 0) < 80).length;
+      this.stats.pensiunSegera = this.pegawaiList.filter(p => {
+        const year = parseInt(p.tglLahir?.substring(0,4) || '1970');
+        return (2026 - year) > 55;
+      }).length;
+      this.prioritasList = this.pegawaiList.filter(p => p.pangkatCountdownDays <= 90 || p.kgbCountdownDays <= 30).slice(0, 5).map(p => ({
+        nip: p.nip, nama: p.nama, golongan: p.golongan, jabatan: p.jabatan,
+        status: p.pangkatCountdownDays <= 30 ? "Mendesak" : "Penting",
+        keterangan: p.pangkatCountdownDays <= 90 ? `Pangkat ${p.pangkatCountdownDays} Hari` : `KGB ${p.kgbCountdownDays} Hari`
+      }));
     },
 
     generateDummyPegawaiDataRaw() {
-      const names = ["Ahmad Subarjo", "Siti Aminah", "Budi Santoso", "Dewi Lestari", "Roni Hidayat"];
+      const names = ["Ahmad Subarjo", "Siti Aminah", "Budi Santoso", "Dewi Lestari", "Roni Hidayat", "Diana Putri", "Eko Prasetyo", "Indah Permata", "Fajar Nugraha", "Sri Wahyuni"];
+      const pangkatList = [{ gol: "III/a", nama: "Penata Muda", jab: "Pengelola IT" }, { gol: "III/b", nama: "Penata Muda Tk. I", jab: "Penjaga Tahanan" }, { gol: "III/c", nama: "Penata", jab: "Kasubseksi" }, { gol: "IV/a", nama: "Pembina", jab: "Kepala KPLP" }];
       let list = [];
       for (let i = 0; i < 87; i++) {
         const randomName = names[i % names.length] + " " + String.fromCharCode(65 + (i % 26));
+        const randomPangkat = pangkatList[i % pangkatList.length];
         const nipRandom = "19" + (75 + (i % 20)) + "0812" + (2000 + (i % 25)) + "01" + (1000 + i);
         list.push({
-          nip: nipRandom,
-          nama: randomName,
-          golongan: i % 4 === 0 ? "III/a" : i % 4 === 1 ? "III/b" : i % 4 === 2 ? "III/c" : "IV/a",
-          jabatan: "Staff",
-          email: randomName.toLowerCase().replace(/\s/g, '') + "@kemenimipas.go.id",
-          noHp: "0812" + (10000000 + i * 91),
-          pangkatCountdownDays: 20 + (i * 7) % 300,
-          kgbCountdownDays: 10 + (i * 11) % 180,
-          progressBerkas: 60 + (i * 4) % 41,
-          tglKgbBerikutnya: "2026-10-01",
-          tglPangkatBerikutnya: "2026-04-01",
+          nip: nipRandom, nama: randomName, pangkat: randomPangkat.nama, golongan: randomPangkat.gol,
+          jabatan: randomPangkat.jab, gender: (i % 2 === 0) ? "Laki-laki" : "Perempuan",
+          tglLahir: "19" + (75 + (i % 20)) + "-08-12", tmtCpns: "20" + (10 + (i % 10)) + "-01-01",
+          tmtPns: "20" + (11 + (i % 10)) + "-03-01", email: randomName.toLowerCase().replace(/\s/g, '') + "@kemenimipas.go.id",
+          noHp: "0812" + (10000000 + i * 91), pangkatCountdownDays: 20 + (i * 7) % 300,
+          kgbCountdownDays: 10 + (i * 11) % 180, progressBerkas: 60 + (i * 4) % 41,
+          tglKgbTerakhir: "2024-10-01", tglKgbBerikutnya: "2026-10-01",
+          tglPangkatTerakhir: "2022-04-01", tglPangkatBerikutnya: "2026-04-01",
+          dokumen: {
+            skPangkat: { nomor: "W12.PAS-01.KP.03." + i, tanggal: "2024-09-15", namaFile: "SK_Pangkat_" + randomName.replace(/\s/g, '') + "_2026.pdf", fileUrl: '' },
+            skJabatan: { nomor: "W12.PAS-02.KP.04." + i, tanggal: "2021-03-05", namaFile: "SK_Jabatan_" + randomName.replace(/\s/g, '') + "_2026.pdf", fileUrl: '' },
+            skpKgb: { nilai: 85 + (i % 15), predikat: (85 + (i % 15)) >= 90 ? "Sangat Baik" : "Baik", tahun: "2025" }
+          }
         });
       }
       return list;
@@ -570,27 +817,63 @@ function sipandaApp() {
 
     generateNotifications() {
       this.notifications = [
-        { id: 1, nip: '198708122010011002', nama: "Ahmad Subarjo", msg: "KGB akan jatuh tempo dalam 30 hari.", type: "danger", time: "Baru saja" }
+        { id: 1, nip: '198708122010011002', nama: "Ahmad Subarjo", msg: "KGB akan jatuh tempo dalam 30 hari.", type: "danger", time: "Baru saja" },
+        { id: 2, nip: '198808122011011003', nama: "Siti Aminah", msg: "Kenaikan Pangkat 60 hari lagi.", type: "warning", time: "1 jam lalu" }
+      ];
+    },
+
+    generateLogs() {
+      this.auditLogs = [
+        { timestamp: "10:15", aksi: "Upload SK", detail: "Admin mengunggah SK" },
+        { timestamp: "09:30", aksi: "Input Cuti", detail: "Cuti diajukan" }
       ];
     },
 
     viewPegawaiProfileByNip(nip) {
       const match = this.pegawaiList.find(p => p.nip === nip);
-      if (match) {
-        alert('📋 ' + match.nama + '\nNIP: ' + match.nip + '\nGolongan: ' + match.golongan + '\nJabatan: ' + match.jabatan);
-      }
+      if (match) { this.selectedPegawai = match; this.activeMenu = 'pegawai'; alert('📋 ' + match.nama + '\nNIP: ' + match.nip + '\nGolongan: ' + match.golongan + '\nJabatan: ' + match.jabatan); }
+    },
+
+    getUrgensiColorClass(days) {
+      if (days <= 30) return 'bg-red-600 animate-pulse';
+      if (days <= 90) return 'bg-orange-500';
+      if (days <= 180) return 'bg-yellow-400';
+      return 'bg-emerald-500';
+    },
+
+    getCountdownClass(days) {
+      if (days <= 30) return 'text-red-600';
+      if (days <= 90) return 'text-orange-500 font-bold';
+      if (days <= 180) return 'text-yellow-600 font-bold';
+      return 'text-emerald-600 font-bold';
+    },
+
+    calculatePensiunDays(tglLahir) { return 580; },
+
+    runSmartSearch() {
+      const q = this.searchQuery.toLowerCase();
+      if (q.includes("pangkat") || q.includes("naik")) this.activeMenu = 'pangkat';
+      else if (q.includes("kgb") || q.includes("gaji")) this.activeMenu = 'kgb';
+      else if (q.includes("cuti")) this.activeMenu = 'cuti';
+      else { this.activeMenu = 'pegawai'; this.pegawaiSearch = this.searchQuery; }
     },
 
     get filteredPegawaiList() {
-      return this.pegawaiList.filter(p => 
-        p.nama.toLowerCase().includes(this.pegawaiSearch.toLowerCase()) || 
-        p.nip.includes(this.pegawaiSearch)
-      );
+      return this.pegawaiList.filter(p => {
+        const matchesSearch = p.nama.toLowerCase().includes(this.pegawaiSearch.toLowerCase()) || p.nip.includes(this.pegawaiSearch);
+        const matchesGolongan = this.filterGolongan === "" || p.golongan === this.filterGolongan;
+        return matchesSearch && matchesGolongan;
+      });
     },
+
+    get filteredCutiList() { return this.cutiList; },
 
     exportDataToExcel() { alert("✅ Ekspor Excel berhasil!"); },
     exportDataToPDF() { window.print(); },
     triggerReportExport(type) { alert("✅ Laporan " + type + " berhasil!"); },
+    triggerSimulatedReminder(pegawai) { alert("📱 Reminder ke " + pegawai.noHp); },
+    triggerPdfPreview(doc) { this.previewDoc = doc; this.showPdfViewer = true; },
+
     exportDatabaseBackup() {
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.pegawaiList));
       const a = document.createElement('a');
@@ -607,11 +890,11 @@ function sipandaApp() {
       new Chart(ctx, {
         type: 'bar',
         data: {
-          labels: ['III/a', 'III/b', 'III/c', 'IV/a'],
+          labels: ['III/a', 'III/b', 'III/c', 'IV/a', 'Cuti'],
           datasets: [{
             label: 'Statistik',
-            data: [35, 27, 15, 10],
-            backgroundColor: ['#0B2341', '#123B63', '#C9A227', '#2E7D32'],
+            data: [35, 27, 15, 10, this.stats.pegawaiCuti],
+            backgroundColor: ['#0B2341', '#123B63', '#C9A227', '#2E7D32', '#C62828'],
             borderRadius: 6
           }]
         },
@@ -621,25 +904,23 @@ function sipandaApp() {
 
     initCalendar() {
       const el = document.getElementById('fullCalendarTarget');
-      if (!el || typeof FullCalendar === 'undefined') return;
-      // Destroy old instance
-      if (this._calendar) { this._calendar.destroy(); this._calendar = null; }
+      if (!el) return;
       const events = this.cutiList.map(c => ({
         title: c.nama,
         start: c.tanggalMulai,
         end: c.tanggalSelesai,
-        color: '#2E7D32'
+        color: c.jenisCuti === 'Cuti Sakit' ? '#C62828' : '#2E7D32'
       }));
-      this._calendar = new FullCalendar.Calendar(el, { 
+      const calendar = new FullCalendar.Calendar(el, { 
         initialView: 'dayGridMonth', 
         events: events,
-        headerToolbar: { left: 'prev,next', center: 'title', right: '' },
-        height: 'auto',
-        contentHeight: 'auto',
-        aspectRatio: 1.2,
-        handleWindowResize: true
+        headerToolbar: {
+          left: 'prev,next',
+          center: 'title',
+          right: ''
+        }
       });
-      this._calendar.render();
+      calendar.render();
     }
   };
 }
