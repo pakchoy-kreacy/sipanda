@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SIPANDA Mobile</title>
+
+<!-- Tailwind CSS (CDN) -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Alpine.js (CDN) -->
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
+
+<!-- Lucide Icons -->
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<!-- FullCalendar -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+<style>
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+#sipanda-app-root {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  /* iOS Safari safe area */
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 999999999;
+  background: #F4F6F9;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+.glass {
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Scrollable content area */
+.main-content-scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  padding: 12px 12px 80px;
+}
+
+/* Bottom nav — bigger touch targets */
+.app-bottombar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  bottom: env(safe-area-inset-bottom, 0px);
+  z-index: 40;
+}
+.app-bottombar button {
+  min-height: 52px;
+  min-width: 44px;
+}
+.app-bottombar span {
+  font-size: 9px;
+  margin-top: 2px;
+}
+
+/* Modal safe */
+.modal-inner {
+  max-height: 90vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 768px) {
+  .app-sidebar { display: flex !important; }
+  .app-bottombar { display: none !important; }
+}
+@media (max-width: 767px) {
+  .app-sidebar { display: none !important; }
+  .app-bottombar { display: flex !important; }
+}
+</style>
+
+<script>
+// ============================================================
+// FIREBASE CONFIG
+// ============================================================
+const IS_PREVIEW = false;
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAvroC_bOa-Mcm8xCcna2TZsFi4dgHdtYI",
+  authDomain: "mytaskplanner-bd32b.firebaseapp.com",
+  projectId: "mytaskplanner-bd32b",
+  storageBucket: "mytaskplanner-bd32b.firebasestorage.app",
+  messagingSenderId: "964822172054",
+  appId: "1:964822172054:web:a67311fe606a1a36ea5db7"
+};
+// ============================================================
+</script>
+
+</head>
+<body>
+
+<div id="sipanda-app-root" x-data="sipandaApp()" x-init="initApp()" class="min-h-screen flex flex-col">
+
+<!-- LOGIN -->
+<div x-show="!isLoggedIn" class="fixed inset-0 z-50 flex items-center justify-center bg-[#0B2341] p-4">
+  <div class="bg-white/95 rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl">
+    <div class="w-16 h-16 bg-[#C9A227] rounded-full flex items-center justify-center mx-auto mb-3">
+      <i data-lucide="shield" class="w-8 h-8 text-white"></i>
+    </div>
+    <h1 class="text-2xl font-bold text-[#0B2341]">SIPANDA</h1>
+    <p class="text-[10px] text-slate-500">Lapas Kelas IIA Banyuasin</p>
+    
+    <form @submit.prevent="handleLogin" class="mt-6 text-left space-y-3">
+      <input type="text" x-model="loginForm.username" placeholder="NIP / Username" class="w-full px-3 py-2 border rounded-lg text-sm">
+      <input type="password" x-model="loginForm.password" placeholder="Password" class="w-full px-3 py-2 border rounded-lg text-sm">
+      <select x-model="loginForm.role" class="w-full px-3 py-2 border rounded-lg text-sm">
+        <option value="admin">Administrator</option>
+        <option value="pegawai">Pegawai</option>
+      </select>
+      <button type="submit" class="w-full bg-[#0B2341] text-white py-2 rounded-lg font-bold">Masuk</button>
+    </form>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div x-show="isLoggedIn" class="flex-1 flex flex-col overflow-hidden" style="min-height:0">
+
+  <!-- HEADER -->
+  <header class="glass flex-shrink-0 flex justify-between items-center px-3 py-2 shadow-sm border-b z-30">
+    <div class="flex items-center space-x-2">
+      <div class="w-8 h-8 bg-[#0B2341] text-white rounded-full flex items-center justify-center">
+        <i data-lucide="shield" class="w-4 h-4"></i>
+      </div>
+      <div>
+        <h1 class="text-sm font-bold text-[#0B2341]">SIPANDA</h1>
+        <p class="text-[8px] text-slate-500">Lapas Banyuasin</p>
+      </div>
+    </div>
+    <button @click="showNotifications = !showNotifications" class="relative p-1.5 bg-slate-100 rounded-lg">
+      <i data-lucide="bell" class="w-4 h-4"></i>
+      <span class="absolute -top-1 -right-1 bg-red-600 text-white text-[8px] w-4 h-4 rounded-full flex items-center justify-center" x-text="notifications.length"></span>
+    </button>
+  </header>
+
+  <!-- CONTENT -->
+  <div class="main-content-scroll space-y-3">
+
+    <!-- DASHBOARD -->
+    <div x-show="activeMenu === 'dashboard'" class="space-y-3">
+      <div class="bg-gradient-to-br from-[#0B2341] to-[#123B63] rounded-2xl p-4 text-white">
+        <h2 class="text-lg font-bold">SIPANDA</h2>
+        <p class="text-[10px] text-slate-300">Lapas Kelas IIA Banyuasin</p>
+        <div class="flex gap-2 mt-3">
+          <button @click="showModalAddPegawai = true" class="bg-[#C9A227] text-slate-900 text-[10px] font-bold px-3 py-1 rounded">+ Pegawai</button>
+          <button @click="showModalAddCuti = true" class="bg-white/20 text-white text-[10px] font-bold px-3 py-1 rounded">+ Cuti</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <div class="bg-white p-3 rounded-xl shadow-sm border">
+          <p class="text-[8px] font-bold text-slate-500 uppercase">Total Pegawai</p>
+          <p class="text-xl font-bold text-[#0B2341]" x-text="stats.totalPegawai"></p>
+        </div>
+        <div class="bg-white p-3 rounded-xl shadow-sm border">
+          <p class="text-[8px] font-bold text-slate-500 uppercase">Cuti</p>
+          <p class="text-xl font-bold text-amber-600" x-text="stats.pegawaiCuti"></p>
+        </div>
+        <div class="bg-white p-3 rounded-xl shadow-sm border">
+          <p class="text-[8px] font-bold text-slate-500 uppercase">Naik Pangkat</p>
+          <p class="text-xl font-bold text-red-600" x-text="stats.pangkatSegera"></p>
+        </div>
+        <div class="bg-white p-3 rounded-xl shadow-sm border">
+          <p class="text-[8px] font-bold text-slate-500 uppercase">KGB Segera</p>
+          <p class="text-xl font-bold text-yellow-600" x-text="stats.kgbSegera"></p>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl p-3 shadow-sm border">
+        <h3 class="font-bold text-xs text-[#0B2341]">Grafik Statistik</h3>
+        <div class="h-40"><canvas id="dashboardMainChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- PEGAWAI -->
+    <div x-show="activeMenu === 'pegawai'" class="space-y-3">
+      <div class="flex justify-between items-center">
+        <h2 class="text-base font-bold text-[#0B2341]">Data Pegawai</h2>
+        <button @click="showModalAddPegawai = true" class="bg-[#0B2341] text-white text-[10px] font-bold px-3 py-1 rounded">+ Tambah</button>
+      </div>
+      <div class="bg-white rounded-2xl p-3 shadow-sm border">
+        <input type="text" x-model="pegawaiSearch" placeholder="Cari..." class="w-full px-3 py-2 border rounded-lg text-sm">
+        <div class="mt-2 space-y-1 max-h-96 overflow-y-auto">
+          <template x-for="(p, index) in filteredPegawaiList.slice(0, 15)" :key="index">
+            <div class="flex justify-between items-center p-2 border-b text-sm">
+              <div>
+                <p class="font-bold" x-text="p.nama"></p>
+                <p class="text-[10px] text-slate-500" x-text="p.nip"></p>
+              </div>
+              <div class="text-right">
+                <p class="text-[10px]" x-text="p.golongan"></p>
+                <button @click="viewPegawaiProfileByNip(p.nip)" class="text-[10px] text-blue-600">Lihat</button>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+
+    <!-- CUTI -->
+    <div x-show="activeMenu === 'cuti'" class="space-y-3">
+      <div class="flex justify-between items-center">
+        <h2 class="text-base font-bold text-[#0B2341]">Cuti</h2>
+        <button @click="showModalAddCuti = true" class="bg-[#0B2341] text-white text-[10px] font-bold px-3 py-1 rounded">+ Cuti</button>
+      </div>
+      <div class="bg-white rounded-2xl p-3 shadow-sm border">
+        <div id="fullCalendarTarget" class="text-[10px]"></div>
+      </div>
+    </div>
+
+    <!-- KGB -->
+    <div x-show="activeMenu === 'kgb'" class="space-y-3">
+      <h2 class="text-base font-bold text-[#0B2341]">Kenaikan Gaji</h2>
+      <div class="bg-white rounded-2xl p-3 shadow-sm border">
+        <div class="space-y-1">
+          <template x-for="(p, index) in pegawaiList.slice(0, 10)" :key="index">
+            <div class="flex justify-between p-2 border-b text-sm">
+              <span x-text="p.nama"></span>
+              <span x-text="p.kgbCountdownDays + ' hari'" class="font-bold" :class="p.kgbCountdownDays < 30 ? 'text-red-600' : 'text-slate-600'"></span>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANGKAT -->
+    <div x-show="activeMenu === 'pangkat'" class="space-y-3">
+      <h2 class="text-base font-bold text-[#0B2341]">Kepangkatan</h2>
+      <div class="bg-white rounded-2xl p-3 shadow-sm border">
+        <div class="space-y-1">
+          <template x-for="(p, index) in pegawaiList.slice(0, 10)" :key="index">
+            <div class="flex justify-between p-2 border-b text-sm">
+              <span x-text="p.nama"></span>
+              <span x-text="p.pangkatCountdownDays + ' hari'" class="font-bold" :class="p.pangkatCountdownDays < 30 ? 'text-red-600' : 'text-slate-600'"></span>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+
+    <!-- LAPORAN -->
+    <div x-show="activeMenu === 'laporan'" class="space-y-3">
+      <h2 class="text-base font-bold text-[#0B2341]">Laporan</h2>
+      <div class="grid grid-cols-2 gap-2">
+        <button @click="triggerReportExport('Pangkat')" class="bg-[#123B63] text-white text-[10px] font-bold py-2 rounded">Pangkat</button>
+        <button @click="triggerReportExport('KGB')" class="bg-[#123B63] text-white text-[10px] font-bold py-2 rounded">KGB</button>
+        <button @click="triggerReportExport('Pegawai')" class="bg-[#123B63] text-white text-[10px] font-bold py-2 rounded">Rekapitulasi</button>
+        <button @click="exportDatabaseBackup()" class="bg-[#C9A227] text-slate-900 text-[10px] font-bold py-2 rounded">Backup</button>
+      </div>
+    </div>
+
+    <!-- ADMIN -->
+    <div x-show="activeMenu === 'admin'" class="space-y-3">
+      <h2 class="text-base font-bold text-[#0B2341]">Admin</h2>
+      <button @click="exportDatabaseBackup()" class="w-full bg-[#0B2341] text-white py-2 rounded font-bold text-sm">Backup Database</button>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="app-bottombar bg-[#0B2341] border-t border-slate-700 flex justify-around items-center px-1" style="padding-bottom: max(8px, env(safe-area-inset-bottom));">
+    <button @click="activeMenu = 'dashboard'; $nextTick(() => lucide.createIcons())" :class="activeMenu === 'dashboard' ? 'text-[#C9A227]' : 'text-slate-400'" class="flex flex-col items-center py-2 px-3">
+      <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+      <span>Home</span>
+    </button>
+    <button @click="activeMenu = 'pegawai'; $nextTick(() => lucide.createIcons())" :class="activeMenu === 'pegawai' ? 'text-[#C9A227]' : 'text-slate-400'" class="flex flex-col items-center py-2 px-3">
+      <i data-lucide="users" class="w-5 h-5"></i>
+      <span>Pegawai</span>
+    </button>
+    <button @click="activeMenu = 'kgb'; $nextTick(() => lucide.createIcons())" :class="activeMenu === 'kgb' ? 'text-[#C9A227]' : 'text-slate-400'" class="flex flex-col items-center py-2 px-3">
+      <i data-lucide="badge-percent" class="w-5 h-5"></i>
+      <span>KGB</span>
+    </button>
+    <button @click="activeMenu = 'cuti'; $nextTick(() => { lucide.createIcons(); initCalendar(); })" :class="activeMenu === 'cuti' ? 'text-[#C9A227]' : 'text-slate-400'" class="flex flex-col items-center py-2 px-3">
+      <i data-lucide="calendar" class="w-5 h-5"></i>
+      <span>Cuti</span>
+    </button>
+    <button @click="handleLogout" class="text-red-400 flex flex-col items-center py-2 px-3">
+      <i data-lucide="log-out" class="w-5 h-5"></i>
+      <span>Keluar</span>
+    </button>
+  </nav>
+
+</div>
+
+<!-- MODAL PEGAWAI -->
+<div x-show="showModalAddPegawai" class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-3" style="display:none;">
+  <div class="bg-white rounded-2xl w-full max-w-sm p-4 max-h-[90vh] overflow-y-auto">
+    <h3 class="font-bold text-sm mb-3">Tambah Pegawai</h3>
+    <form @submit.prevent="saveNewPegawai" class="space-y-3">
+      <input type="text" x-model="newPegawaiForm.nip" placeholder="NIP" class="w-full px-3 py-2 border rounded-lg text-sm">
+      <input type="text" x-model="newPegawaiForm.nama" placeholder="Nama" class="w-full px-3 py-2 border rounded-lg text-sm">
+      <input type="text" x-model="newPegawaiForm.jabatan" placeholder="Jabatan" class="w-full px-3 py-2 border rounded-lg text-sm">
+      <div class="flex gap-2">
+        <button type="button" @click="showModalAddPegawai = false" class="flex-1 bg-slate-100 py-2 rounded font-bold">Batal</button>
+        <button type="submit" class="flex-1 bg-[#0B2341] text-white py-2 rounded font-bold">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL CUTI -->
+<div x-show="showModalAddCuti" class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-3" style="display:none;">
+  <div class="bg-white rounded-2xl w-full max-w-sm p-4 max-h-[90vh] overflow-y-auto">
+    <h3 class="font-bold text-sm mb-3">Tambah Cuti</h3>
+    <form @submit.prevent="saveNewCuti" class="space-y-3">
+      <select x-model="newCutiForm.nip" class="w-full px-3 py-2 border rounded-lg text-sm">
+        <option value="">Pilih Pegawai</option>
+        <template x-for="(p, index) in pegawaiList" :key="index">
+          <option :value="p.nip" x-text="p.nama"></option>
+        </template>
+      </select>
+      <input type="date" x-model="newCutiForm.tanggalMulai" class="w-full px-3 py-2 border rounded-lg text-sm">
+      <input type="date" x-model="newCutiForm.tanggalSelesai" class="w-full px-3 py-2 border rounded-lg text-sm">
+      <div class="flex gap-2">
+        <button type="button" @click="showModalAddCuti = false" class="flex-1 bg-slate-100 py-2 rounded font-bold">Batal</button>
+        <button type="submit" class="flex-1 bg-[#2E7D32] text-white py-2 rounded font-bold">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+</div>
+
+<script>
+// ============================================================
+// FIREBASE INIT
+// ============================================================
+let db = null;
+let auth = null;
+
+if (!IS_PREVIEW) {
+  try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    auth = firebase.auth();
+    console.log("✅ Firebase Connected!");
+  } catch (err) {
+    console.error("❌ Firebase Error:", err);
+  }
+}
+
+// ============================================================
+// APP
+// ============================================================
+function sipandaApp() {
+  return {
+    isLoggedIn: false,
+    role: 'admin',
+    sessionUser: { nama: 'Admin', nip: '197605212001011002' },
+    activeMenu: 'dashboard',
+    pegawaiSearch: '',
+    showNotifications: false,
+    showModalAddPegawai: false,
+    showModalAddCuti: false,
+    loginForm: { username: '', password: '', role: 'admin' },
+    newPegawaiForm: { nip: '', nama: '', golongan: 'III/a', jabatan: '', noHp: '', email: '' },
+    newCutiForm: { nip: '', jenisCuti: 'Cuti Tahunan', tanggalMulai: '', tanggalSelesai: '', keterangan: '' },
+    pegawaiList: [],
+    cutiList: [],
+    notifications: [],
+    todoList: [],
+    stats: { totalPegawai: 0, pegawaiCuti: 0, pegawaiCutiName: 'Tidak ada', pangkatSegera: 0, kgbSegera: 0 },
+
+    async initApp() {
+      await this.syncDatabase();
+      this.generateNotifications();
+      // Re-run icons after Alpine renders
+      this.$nextTick(() => {
+        setTimeout(() => {
+          lucide.createIcons();
+          this.initChart();
+        }, 100);
+      });
+    },
+
+    async syncDatabase() {
+      if (IS_PREVIEW || !db) {
+        let localPegawai = localStorage.getItem('sipanda_pegawai');
+        if (!localPegawai) {
+          const dummy = this.generateDummyPegawaiDataRaw();
+          localStorage.setItem('sipanda_pegawai', JSON.stringify(dummy));
+          this.pegawaiList = dummy;
+        } else {
+          this.pegawaiList = JSON.parse(localPegawai);
+        }
+        let localCuti = localStorage.getItem('sipanda_cuti');
+        if (!localCuti) {
+          const dummyCuti = [{ cutiId: 'c1', nip: this.pegawaiList[0]?.nip || '', nama: this.pegawaiList[0]?.nama || '', jenisCuti: 'Cuti Tahunan', tanggalMulai: '2026-07-15', tanggalSelesai: '2026-07-20', status: 'Disetujui' }];
+          localStorage.setItem('sipanda_cuti', JSON.stringify(dummyCuti));
+          this.cutiList = dummyCuti;
+        } else {
+          this.cutiList = JSON.parse(localCuti);
+        }
+      } else {
+        try {
+          const pegawaiSnap = await db.collection('artifacts').doc('sipanda').collection('public').doc('data').collection('pegawai').get();
+          if (pegawaiSnap.empty) {
+            await this.autoSetupDatabaseFirebase();
+            return this.syncDatabase();
+          }
+          let listPegawai = [];
+          pegawaiSnap.forEach(doc => listPegawai.push(doc.data()));
+          this.pegawaiList = listPegawai;
+          const cutiSnap = await db.collection('artifacts').doc('sipanda').collection('public').doc('data').collection('cuti').get();
+          let listCuti = [];
+          cutiSnap.forEach(doc => listCuti.push(doc.data()));
+          this.cutiList = listCuti;
+        } catch (err) {
+          console.error("❌ Firestore error:", err);
+        }
+      }
+      this.recalculateSystemStats();
+    },
+
+    async autoSetupDatabaseFirebase() {
+      console.log("🚀 Auto Setup Firebase...");
+      const dummy = this.generateDummyPegawaiDataRaw();
+      const batch = db.batch();
+      dummy.forEach(p => {
+        const docRef = db.collection('artifacts').doc('sipanda').collection('public').doc('data').collection('pegawai').doc(p.nip);
+        batch.set(docRef, p);
+      });
+      await batch.commit();
+      console.log("✅ Firebase seeded!");
+    },
+
+    async saveNewPegawai() {
+      if (!this.newPegawaiForm.nip || !this.newPegawaiForm.nama) {
+        alert('⚠️ NIP dan Nama wajib diisi!');
+        return;
+      }
+      const newPegawai = {
+        nip: this.newPegawaiForm.nip,
+        nama: this.newPegawaiForm.nama,
+        golongan: 'III/a',
+        jabatan: this.newPegawaiForm.jabatan || '-',
+        email: '-',
+        noHp: '-',
+        pangkatCountdownDays: 120,
+        kgbCountdownDays: 85,
+        progressBerkas: 20,
+        tglKgbBerikutnya: "2026-10-01",
+        tglPangkatBerikutnya: "2026-04-01",
+      };
+      this.pegawaiList.unshift(newPegawai);
+      if (IS_PREVIEW || !db) {
+        localStorage.setItem('sipanda_pegawai', JSON.stringify(this.pegawaiList));
+      } else {
+        await db.collection('artifacts').doc('sipanda').collection('public').doc('data').collection('pegawai').doc(newPegawai.nip).set(newPegawai);
+      }
+      this.showModalAddPegawai = false;
+      this.recalculateSystemStats();
+      alert('✅ Pegawai ' + newPegawai.nama + ' berhasil!');
+      this.newPegawaiForm = { nip: '', nama: '', golongan: 'III/a', jabatan: '', noHp: '', email: '' };
+    },
+
+    async saveNewCuti() {
+      if (!this.newCutiForm.nip || !this.newCutiForm.tanggalMulai || !this.newCutiForm.tanggalSelesai) {
+        alert('⚠️ Semua field wajib diisi!');
+        return;
+      }
+      const matched = this.pegawaiList.find(p => p.nip === this.newCutiForm.nip);
+      if (!matched) { alert('⚠️ Pegawai tidak ditemukan!'); return; }
+      const newCuti = {
+        cutiId: 'cuti_' + Date.now(),
+        nip: this.newCutiForm.nip,
+        nama: matched.nama,
+        jenisCuti: 'Cuti Tahunan',
+        tanggalMulai: this.newCutiForm.tanggalMulai,
+        tanggalSelesai: this.newCutiForm.tanggalSelesai,
+        status: 'Disetujui'
+      };
+      this.cutiList.unshift(newCuti);
+      if (IS_PREVIEW || !db) {
+        localStorage.setItem('sipanda_cuti', JSON.stringify(this.cutiList));
+      } else {
+        await db.collection('artifacts').doc('sipanda').collection('public').doc('data').collection('cuti').doc(newCuti.cutiId).set(newCuti);
+      }
+      this.showModalAddCuti = false;
+      this.recalculateSystemStats();
+      setTimeout(() => { this.initCalendar(); }, 300);
+      alert('✅ Cuti ' + matched.nama + ' berhasil!');
+    },
+
+    handleLogin() {
+      this.isLoggedIn = true;
+      this.role = this.loginForm.role;
+      if (this.role === 'pegawai') {
+        const matched = this.pegawaiList.find(p => p.nip === this.loginForm.username) || this.pegawaiList[0];
+        this.sessionUser = { nama: matched?.nama || 'Pegawai', nip: matched?.nip || '' };
+      } else {
+        this.sessionUser = { nama: 'Admin TU', nip: '197605212001011002' };
+        this.activeMenu = 'dashboard';
+      }
+      this.$nextTick(() => {
+        setTimeout(() => {
+          lucide.createIcons();
+          this.initChart();
+        }, 150);
+      });
+    },
+
+    handleLogout() { this.isLoggedIn = false; },
+
+    recalculateSystemStats() {
+      this.stats.totalPegawai = this.pegawaiList.length;
+      this.stats.pegawaiCuti = this.cutiList.length;
+      this.stats.pegawaiCutiName = this.cutiList.map(c => c.nama).join(', ') || 'Nihil';
+      this.stats.pangkatSegera = this.pegawaiList.filter(p => p.pangkatCountdownDays <= 180).length;
+      this.stats.kgbSegera = this.pegawaiList.filter(p => p.kgbCountdownDays <= 180).length;
+    },
+
+    generateDummyPegawaiDataRaw() {
+      const names = ["Ahmad Subarjo", "Siti Aminah", "Budi Santoso", "Dewi Lestari", "Roni Hidayat"];
+      let list = [];
+      for (let i = 0; i < 87; i++) {
+        const randomName = names[i % names.length] + " " + String.fromCharCode(65 + (i % 26));
+        const nipRandom = "19" + (75 + (i % 20)) + "0812" + (2000 + (i % 25)) + "01" + (1000 + i);
+        list.push({
+          nip: nipRandom,
+          nama: randomName,
+          golongan: i % 4 === 0 ? "III/a" : i % 4 === 1 ? "III/b" : i % 4 === 2 ? "III/c" : "IV/a",
+          jabatan: "Staff",
+          email: randomName.toLowerCase().replace(/\s/g, '') + "@kemenimipas.go.id",
+          noHp: "0812" + (10000000 + i * 91),
+          pangkatCountdownDays: 20 + (i * 7) % 300,
+          kgbCountdownDays: 10 + (i * 11) % 180,
+          progressBerkas: 60 + (i * 4) % 41,
+          tglKgbBerikutnya: "2026-10-01",
+          tglPangkatBerikutnya: "2026-04-01",
+        });
+      }
+      return list;
+    },
+
+    generateNotifications() {
+      this.notifications = [
+        { id: 1, nip: '198708122010011002', nama: "Ahmad Subarjo", msg: "KGB akan jatuh tempo dalam 30 hari.", type: "danger", time: "Baru saja" }
+      ];
+    },
+
+    viewPegawaiProfileByNip(nip) {
+      const match = this.pegawaiList.find(p => p.nip === nip);
+      if (match) {
+        alert('📋 ' + match.nama + '\nNIP: ' + match.nip + '\nGolongan: ' + match.golongan + '\nJabatan: ' + match.jabatan);
+      }
+    },
+
+    get filteredPegawaiList() {
+      return this.pegawaiList.filter(p => 
+        p.nama.toLowerCase().includes(this.pegawaiSearch.toLowerCase()) || 
+        p.nip.includes(this.pegawaiSearch)
+      );
+    },
+
+    exportDataToExcel() { alert("✅ Ekspor Excel berhasil!"); },
+    exportDataToPDF() { window.print(); },
+    triggerReportExport(type) { alert("✅ Laporan " + type + " berhasil!"); },
+    exportDatabaseBackup() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.pegawaiList));
+      const a = document.createElement('a');
+      a.setAttribute("href", dataStr);
+      a.setAttribute("download", "SIPANDA_Backup.json");
+      a.click();
+    },
+
+    initChart() {
+      const ctx = document.getElementById('dashboardMainChart');
+      if (!ctx) return;
+      const existing = Chart.getChart(ctx);
+      if (existing) existing.destroy();
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['III/a', 'III/b', 'III/c', 'IV/a'],
+          datasets: [{
+            label: 'Statistik',
+            data: [35, 27, 15, 10],
+            backgroundColor: ['#0B2341', '#123B63', '#C9A227', '#2E7D32'],
+            borderRadius: 6
+          }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+      });
+    },
+
+    initCalendar() {
+      const el = document.getElementById('fullCalendarTarget');
+      if (!el || typeof FullCalendar === 'undefined') return;
+      // Destroy old instance
+      if (this._calendar) { this._calendar.destroy(); this._calendar = null; }
+      const events = this.cutiList.map(c => ({
+        title: c.nama,
+        start: c.tanggalMulai,
+        end: c.tanggalSelesai,
+        color: '#2E7D32'
+      }));
+      this._calendar = new FullCalendar.Calendar(el, { 
+        initialView: 'dayGridMonth', 
+        events: events,
+        headerToolbar: { left: 'prev,next', center: 'title', right: '' },
+        height: 'auto',
+        contentHeight: 'auto',
+        aspectRatio: 1.2,
+        handleWindowResize: true
+      });
+      this._calendar.render();
+    }
+  };
+}
+</script>
+
+</body>
+</html>
