@@ -112,14 +112,15 @@ const firebaseConfig = {
 <p class="text-xs font-semibold text-[#123B63] mt-1 uppercase tracking-wide">Sistem Informasi Pengelolaan Data & Arsip Pegawai</p>
 <p class="text-[11px] text-slate-500 mt-0.5">Lapas Kelas IIA Banyuasin</p>
 
+<!-- FORM LOGIN - HANYA EMAIL & PASSWORD -->
 <form @submit.prevent="handleLogin" class="mt-8 text-left space-y-4">
 <div>
-<label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">NIP / Username</label>
+<label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Email Admin</label>
 <div class="relative">
 <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
 <i data-lucide="user" class="w-5 h-5"></i>
 </span>
-<input type="text" x-model="loginForm.username" required class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#C9A227] text-sm" placeholder="Masukkan NIP atau Email">
+<input type="email" x-model="loginForm.username" required class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#C9A227] text-sm" placeholder="admin@lapas.go.id">
 </div>
 </div>
 <div>
@@ -128,15 +129,8 @@ const firebaseConfig = {
 <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
 <i data-lucide="lock" class="w-5 h-5"></i>
 </span>
-<input type="password" x-model="loginForm.password" required class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#C9A227] text-sm" placeholder="Password Anda">
+<input type="password" x-model="loginForm.password" required class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#C9A227] text-sm" placeholder="Password Admin">
 </div>
-</div>
-<div>
-<label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Role Login</label>
-<select x-model="loginForm.role" class="w-full px-3 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#C9A227] text-sm bg-white">
-<option value="admin">Administrator / Tata Usaha</option>
-<option value="pegawai">Pegawai Mandiri (NIP)</option>
-</select>
 </div>
 <div class="pt-2">
 <button type="submit" class="w-full bg-[#0B2341] hover:bg-[#123B63] text-white py-3 rounded-lg font-bold text-sm transition duration-300 transform hover:scale-[1.02] flex items-center justify-center space-x-2 shadow-lg shadow-blue-900/20">
@@ -182,18 +176,16 @@ const firebaseConfig = {
 <button @click="activeMenu = 'laporan'" :class="activeMenu === 'laporan' ? 'bg-[#C9A227] text-[#0B2341] font-bold' : 'hover:bg-white/5 text-slate-300'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm transition">
 <i data-lucide="file-text" class="w-5 h-5"></i><span>Laporan Ekspor</span>
 </button>
-<template x-if="role === 'admin'">
 <button @click="activeMenu = 'admin'" :class="activeMenu === 'admin' ? 'bg-[#C9A227] text-[#0B2341] font-bold' : 'hover:bg-white/5 text-slate-300'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm transition">
 <i data-lucide="settings" class="w-5 h-5"></i><span>Fitur Admin Console</span>
 </button>
-</template>
 </nav>
 <div class="p-4 border-t border-slate-800 bg-slate-950/40">
 <div class="flex items-center space-x-3">
 <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150" class="w-10 h-10 rounded-full border border-[#C9A227] object-cover" alt="User avatar">
 <div class="flex-1 min-w-0">
 <p class="text-xs font-bold text-white truncate" x-text="sessionUser.nama"></p>
-<p class="text-[10px] text-slate-400 capitalize truncate" x-text="role"></p>
+<p class="text-[10px] text-slate-400 capitalize truncate">Admin</p>
 </div>
 <button @click="handleLogout" class="text-slate-400 hover:text-red-400 p-1">
 <i data-lucide="log-out" class="w-5 h-5"></i>
@@ -689,7 +681,7 @@ function sipandaApp() {
   return {
     isLoggedIn: false,
     role: 'admin',
-    sessionUser: { nama: 'Admin TU Lapas', nip: '197605212001011002' },
+    sessionUser: { nama: 'Admin SIPANDA', nip: 'ADMIN001' },
     activeMenu: 'dashboard',
     pegawaiSearch: '',
     filterGolongan: '',
@@ -700,7 +692,7 @@ function sipandaApp() {
     previewDoc: { nomor: '', tanggal: '', namaFile: '', fileUrl: '' },
     showModalAddPegawai: false,
     showModalAddCuti: false,
-    loginForm: { username: '', password: '', role: 'admin' },
+    loginForm: { username: '', password: '' }, // HANYA email & password
     newTodoText: '',
     newPegawaiForm: { nip: '', nama: '', golongan: 'III/a', jabatan: '', noHp: '', email: '' },
     newCutiForm: { nip: '', jenisCuti: 'Cuti Tahunan', tanggalMulai: '', tanggalSelesai: '', keterangan: '' },
@@ -728,6 +720,27 @@ function sipandaApp() {
       await this.syncDatabase();
       this.generateNotifications();
       this.generateLogs();
+      
+      // 🔍 Cek status login (jika sudah login sebelumnya)
+      if (auth) {
+        auth.onAuthStateChanged((user) => {
+          if (user) {
+            // Auto login jika session masih aktif
+            this.isLoggedIn = true;
+            this.sessionUser = {
+              nama: 'Admin SIPANDA',
+              nip: 'ADMIN' + user.uid.slice(0, 6),
+              email: user.email
+            };
+            setTimeout(() => {
+              lucide.createIcons();
+              this.initChart();
+              this.initCalendar();
+            }, 300);
+          }
+        });
+      }
+      
       setTimeout(() => {
         lucide.createIcons();
         this.initChart();
@@ -814,6 +827,73 @@ function sipandaApp() {
       batch.set(todoRef, { id: 1, task: "Verifikasi Berkas SK Pangkat", done: false });
       await batch.commit();
       console.log("✅ Firebase seeded!");
+    },
+
+    // ============ LOGIN - PAKAI FIREBASE AUTH ============
+    async handleLogin() {
+      if (!this.loginForm.username || !this.loginForm.password) {
+        alert('⚠️ Harap isi email dan password!');
+        return;
+      }
+
+      try {
+        // 🔐 Login ke Firebase Auth
+        const credential = await firebase.auth().signInWithEmailAndPassword(
+          this.loginForm.username,
+          this.loginForm.password
+        );
+        
+        const user = credential.user;
+        console.log('✅ Login sukses:', user.email);
+
+        // ✅ LANGSUNG LOGIN - Semua user di Auth dianggap ADMIN
+        this.isLoggedIn = true;
+        this.role = 'admin';
+        this.sessionUser = {
+          nama: 'Admin SIPANDA',
+          nip: 'ADMIN' + user.uid.slice(0, 6),
+          email: user.email
+        };
+        this.activeMenu = 'dashboard';
+
+        setTimeout(() => {
+          lucide.createIcons();
+          this.initChart();
+          this.initCalendar();
+        }, 300);
+
+      } catch (error) {
+        console.error('❌ Login error:', error);
+        
+        // Tampilkan pesan error yang jelas
+        let errorMsg = 'Login gagal! ';
+        if (error.code === 'auth/user-not-found') {
+          errorMsg += 'Email tidak terdaftar.';
+        } else if (error.code === 'auth/wrong-password') {
+          errorMsg += 'Password salah.';
+        } else if (error.code === 'auth/invalid-email') {
+          errorMsg += 'Format email tidak valid.';
+        } else {
+          errorMsg += error.message;
+        }
+        alert('❌ ' + errorMsg);
+      }
+    },
+
+    // ============ LOGOUT ============
+    async handleLogout() {
+      try {
+        if (auth) {
+          await auth.signOut();
+        }
+        this.isLoggedIn = false;
+        this.loginForm = { username: '', password: '' };
+        console.log('✅ Logout sukses');
+      } catch (error) {
+        console.error('Logout error:', error);
+        // Force logout
+        this.isLoggedIn = false;
+      }
     },
 
     // ============ UPDATE DATA ============
@@ -942,29 +1022,6 @@ function sipandaApp() {
         alert('✅ Dokumen ' + file.name + ' berhasil diunggah!');
       };
       reader.readAsDataURL(file);
-    },
-
-    // ============ LOGIN ============
-    handleLogin() {
-      this.isLoggedIn = true;
-      this.role = this.loginForm.role;
-      if (this.role === 'pegawai') {
-        const matched = this.pegawaiList.find(p => p.nip === this.loginForm.username) || this.pegawaiList[0];
-        this.sessionUser = { nama: matched?.nama || 'Pegawai', nip: matched?.nip || '' };
-        if (matched) this.viewPegawaiProfileByNip(matched.nip);
-      } else {
-        this.sessionUser = { nama: 'Admin TU Lapas', nip: '197605212001011002' };
-        this.activeMenu = 'dashboard';
-      }
-      setTimeout(() => {
-        lucide.createIcons();
-        this.initChart();
-        this.initCalendar();
-      }, 300);
-    },
-
-    handleLogout() {
-      this.isLoggedIn = false;
     },
 
     // ============ TODO ============
