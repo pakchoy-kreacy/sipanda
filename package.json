@@ -1,0 +1,13 @@
+{
+  "name": "sipanda",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "npm run build:css",
+    "build:css": "tailwindcss -i ./assets/css/tailwind.css -o ./assets/css/app.css --minify",
+    "watch:css": "tailwindcss -i ./assets/css/tailwind.css -o ./assets/css/app.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  }
+}
