@@ -17,6 +17,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, doc, getDocs, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCoLvKceuAmNBMELnt-FdVha-EMmlvm0jU",
@@ -30,12 +31,14 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
 // Expose ke Alpine via window
 window._fb = {
-  auth, db,
+  auth, db, storage,
   signInWithEmailAndPassword, signOut, onAuthStateChanged,
-  collection, doc, getDocs, setDoc, deleteDoc, onSnapshot
+  collection, doc, getDocs, setDoc, deleteDoc, onSnapshot,
+  ref, uploadBytes, getDownloadURL, deleteObject
 };
 </script>
 <style>
@@ -115,13 +118,17 @@ window._fb = {
   <div class="relative hidden md:block w-72"><input type="text" x-model="searchQuery" @keyup.enter="runSmartSearch()" class="w-full bg-slate-100 border-0 focus:ring-2 focus:ring-[#C9A227] rounded-xl px-4 py-2 pl-10 text-xs text-slate-700" placeholder="🔍 Cari..."><span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><i data-lucide="sparkles" class="w-4 h-4"></i></span></div>
   <div class="flex items-center gap-1.5 text-[10px]" :class="firestoreOnline?'text-emerald-600':'text-red-500'">
     <div class="w-2 h-2 rounded-full" :class="firestoreOnline?'bg-emerald-500':'bg-red-500'"></div>
-    <span x-text="firestoreOnline?'Online':'Offline'"></span>
+    <span :title="databaseError" x-text="firestoreOnline?'Online':(databaseError?'Database error':'Menghubungkan...')"></span>
   </div>
 </div>
 </header>
 
 <!-- BODY -->
 <div class="flex-1 p-6 space-y-6 overflow-y-auto">
+<div x-show="databaseError" x-cloak class="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-xs flex items-start gap-2">
+<i data-lucide="database-zap" class="w-4 h-4 flex-shrink-0"></i>
+<div><p class="font-bold">Database tidak dapat diakses</p><p x-text="databaseError"></p></div>
+</div>
 
 <!-- DASHBOARD -->
 <div x-show="activeMenu==='dashboard'" class="space-y-6">
@@ -155,7 +162,7 @@ window._fb = {
 <div class="flex flex-wrap justify-between items-center gap-4"><h2 class="text-2xl font-extrabold text-[#0B2341]">Data Pegawai</h2><div class="flex gap-2"><button @click="showModalAddPegawai=true" class="bg-[#0B2341] text-white font-bold text-xs px-4 py-2 rounded-xl">+ Pegawai</button></div></div>
 <div class="bg-white rounded-3xl p-6 shadow-sm border">
 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4"><input type="text" x-model="pegawaiSearch" class="md:col-span-2 bg-slate-50 border rounded-xl px-4 py-2.5 text-xs" placeholder="Cari nama/NIP/jabatan..."><select x-model="filterGolongan" class="bg-white border rounded-xl px-4 py-2.5 text-xs"><option value="">Semua Golongan</option><option value="II/a">II/a</option><option value="II/b">II/b</option><option value="II/c">II/c</option><option value="II/d">II/d</option><option value="III/a">III/a</option><option value="III/b">III/b</option><option value="III/c">III/c</option><option value="III/d">III/d</option><option value="IV/a">IV/a</option><option value="IV/b">IV/b</option><option value="IV/c">IV/c</option><option value="IV/d">IV/d</option><option value="IV/e">IV/e</option></select><select x-model="filterUrgensi" class="bg-white border rounded-xl px-4 py-2.5 text-xs"><option value="">Semua</option><option value="red">🔴 Mendesak</option><option value="orange">🟠 Perhatian</option><option value="yellow">🟡 Persiapan</option><option value="green">🟢 Aman</option></select></div>
-<div class="overflow-x-auto"><table class="w-full text-left text-xs"><thead class="bg-slate-50 font-bold"><tr><th class="p-3">Foto</th><th class="p-3">NIP & Nama</th><th class="p-3">Golongan</th><th class="p-3">Pangkat</th><th class="p-3">KGB</th><th class="p-3">Berkas</th><th class="p-3 text-center">Aksi</th></tr></thead><tbody><template x-for="p in filteredPegawaiList" :key="p.nip"><tr class="border-b hover:bg-slate-50"><td class="p-3"><img :src="p.foto||'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150'" class="w-8 h-8 rounded-full object-cover"></td><td class="p-3"><span class="font-bold" x-text="p.nama"></span><span class="block text-[10px] text-slate-500" x-text="p.nip"></span></td><td class="p-3" x-text="p.golongan"></td><td class="p-3"><span class="font-bold" :class="getCountdownClass(p.pangkatCountdownDays)" x-text="p.pangkatCountdownDays+'h'"></span></td><td class="p-3"><span class="font-bold" :class="getCountdownClass(p.kgbCountdownDays)" x-text="p.kgbCountdownDays+'h'"></span></td><td class="p-3"><div class="w-12 bg-slate-100 rounded-full h-1.5"><div class="bg-emerald-500 h-1.5 rounded-full" :style="'width:'+p.progressBerkas+'%'"></div></div><span class="text-[10px] text-slate-400" x-text="p.progressBerkas+'%'"></span></td><td class="p-3 text-center"><button @click="viewPegawaiProfileByNip(p.nip)" class="bg-[#123B63] text-white text-[10px] px-3 py-1 rounded-lg">Profil</button></td></tr></template></tbody></table></div>
+<div class="overflow-x-auto"><table class="w-full text-left text-xs"><thead class="bg-slate-50 font-bold"><tr><th class="p-3">Foto</th><th class="p-3">NIP &amp; Nama</th><th class="p-3">Golongan</th><th class="p-3">Pangkat</th><th class="p-3">KGB</th><th class="p-3">Berkas</th><th class="p-3 text-center">Aksi</th></tr></thead><tbody><template x-for="p in filteredPegawaiList" :key="p.nip"><tr class="border-b hover:bg-slate-50"><td class="p-3"><img :src="p.foto||'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150'" :alt="'Foto '+p.nama" class="w-8 h-8 rounded-full object-cover"></td><td class="p-3"><span class="font-bold" x-text="p.nama"></span><span class="block text-[10px] text-slate-500" x-text="p.nip"></span></td><td class="p-3" x-text="p.golongan"></td><td class="p-3"><span class="font-bold" :class="getCountdownClass(p.pangkatCountdownDays)" x-text="formatCountdown(p.pangkatCountdownDays,true)"></span></td><td class="p-3"><span class="font-bold" :class="getCountdownClass(p.kgbCountdownDays)" x-text="formatCountdown(p.kgbCountdownDays,true)"></span></td><td class="p-3"><div class="w-12 bg-slate-100 rounded-full h-1.5"><div class="bg-emerald-500 h-1.5 rounded-full" :style="'width:'+p.progressBerkas+'%'"></div></div><span class="text-[10px] text-slate-400" x-text="p.progressBerkas+'%'"></span></td><td class="p-3 text-center"><button type="button" @click="viewPegawaiProfileByNip(p.nip)" class="bg-[#123B63] text-white text-[10px] px-3 py-1 rounded-lg">Profil</button></td></tr></template></tbody></table></div>
 </div>
 </div>
 
@@ -167,9 +174,9 @@ window._fb = {
 <div class="bg-[#0B2341] text-white rounded-3xl p-6 relative overflow-hidden"><div class="absolute right-0 top-0 opacity-10"><i data-lucide="user-check" class="w-80 h-80"></i></div><div class="relative flex flex-col md:flex-row items-center gap-6"><div class="relative"><img :src="selectedPegawai.foto||'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=250'" class="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-yellow-500 object-cover"><label class="absolute bottom-0 right-0 bg-[#C9A227] p-1.5 rounded-full cursor-pointer"><i data-lucide="camera" class="w-4 h-4 text-slate-900"></i><input type="file" accept="image/*" @change="uploadFoto($event)" class="hidden"></label></div><div><h2 class="text-2xl font-extrabold" x-text="selectedPegawai.nama"></h2><p class="text-sm text-yellow-500" x-text="selectedPegawai.golongan+' - '+selectedPegawai.jabatan"></p><p class="text-xs text-slate-400 mt-1" x-text="selectedPegawai.nip"></p></div></div></div>
 
 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-<div class="bg-white p-5 rounded-2xl shadow-sm border"><p class="text-[10px] font-bold text-slate-400 uppercase">Pangkat</p><p class="text-xl font-extrabold mt-1" :class="getCountdownClass(selectedPegawai.pangkatCountdownDays)" x-text="selectedPegawai.pangkatCountdownDays+' Hari'"></p></div>
-<div class="bg-white p-5 rounded-2xl shadow-sm border"><p class="text-[10px] font-bold text-slate-400 uppercase">KGB</p><p class="text-xl font-extrabold mt-1" :class="getCountdownClass(selectedPegawai.kgbCountdownDays)" x-text="selectedPegawai.kgbCountdownDays+' Hari'"></p></div>
-<div class="bg-white p-5 rounded-2xl shadow-sm border"><p class="text-[10px] font-bold text-slate-400 uppercase">Pensiun</p><p class="text-xl font-extrabold mt-1 text-[#0B2341]" x-text="selectedPegawai.pensiunCountdown+' Hari'"></p></div>
+<div class="bg-white p-5 rounded-2xl shadow-sm border"><p class="text-[10px] font-bold text-slate-400 uppercase">Pangkat</p><p class="text-xl font-extrabold mt-1" :class="getCountdownClass(selectedPegawai.pangkatCountdownDays)" x-text="formatCountdown(selectedPegawai.pangkatCountdownDays)"></p></div>
+<div class="bg-white p-5 rounded-2xl shadow-sm border"><p class="text-[10px] font-bold text-slate-400 uppercase">KGB</p><p class="text-xl font-extrabold mt-1" :class="getCountdownClass(selectedPegawai.kgbCountdownDays)" x-text="formatCountdown(selectedPegawai.kgbCountdownDays)"></p></div>
+<div class="bg-white p-5 rounded-2xl shadow-sm border"><p class="text-[10px] font-bold text-slate-400 uppercase">Pensiun</p><p class="text-xl font-extrabold mt-1" :class="getCountdownClass(selectedPegawai.pensiunCountdown)" x-text="formatCountdown(selectedPegawai.pensiunCountdown)"></p></div>
 <div class="bg-white p-5 rounded-2xl shadow-sm border"><p class="text-[10px] font-bold text-slate-400 uppercase">Berkas</p><p class="text-xl font-extrabold mt-1 text-emerald-600" x-text="selectedPegawai.progressBerkas+'%'"></p></div>
 </div>
 
@@ -197,7 +204,7 @@ window._fb = {
 <div><label class="font-bold text-slate-500">No HP</label><input type="text" x-model="selectedPegawai.noHp" @change="savePegawaiEdit()" class="w-full border rounded-lg px-3 py-2 mt-1"></div>
 <div class="md:col-span-2 mt-2 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-3">
   <i data-lucide="clock" class="w-5 h-5 text-amber-600 flex-shrink-0"></i>
-  <div><p class="font-bold text-xs text-amber-800">Countdown Pensiun</p><p class="text-sm font-extrabold text-amber-600" x-text="selectedPegawai.pensiunCountdown+' hari lagi'"></p></div>
+  <div><p class="font-bold text-xs text-amber-800">Countdown Pensiun</p><p class="text-sm font-extrabold" :class="getCountdownClass(selectedPegawai.pensiunCountdown)" x-text="formatCountdown(selectedPegawai.pensiunCountdown)"></p></div>
 </div>
 <div class="md:col-span-2 flex gap-2 pt-2 border-t"><button @click="hapusPegawai(selectedPegawai.nip)" class="bg-red-50 text-red-600 font-bold text-xs px-4 py-2 rounded-xl">Hapus Pegawai</button></div>
 </div>
@@ -211,14 +218,14 @@ window._fb = {
 <div><label class="font-bold text-slate-500">Pangkat Berikutnya</label><input type="text" x-model="selectedPegawai.pangkatBerikutnya" @change="savePegawaiEdit()" placeholder="e.g. Pengatur Tk.I" class="w-full border rounded-lg px-3 py-2 mt-1"></div>
 <div class="p-3 bg-blue-50 border border-blue-100 rounded-xl flex items-center gap-3">
   <i data-lucide="award" class="w-5 h-5 text-blue-600"></i>
-  <div><p class="font-bold text-xs text-blue-800">Countdown Naik Pangkat</p><p class="text-sm font-extrabold" :class="getCountdownClass(selectedPegawai.pangkatCountdownDays)" x-text="selectedPegawai.pangkatCountdownDays+' hari lagi'"></p></div>
+  <div><p class="font-bold text-xs text-blue-800">Countdown Naik Pangkat</p><p class="text-sm font-extrabold" :class="getCountdownClass(selectedPegawai.pangkatCountdownDays)" x-text="formatCountdown(selectedPegawai.pangkatCountdownDays)"></p></div>
 </div>
 <div class="md:col-span-2 border-2 border-dashed border-[#C9A227]/40 rounded-xl p-4 text-center relative bg-amber-50/30">
-<input type="file" accept="application/pdf" @change="handleDocUpload($event,'skPangkat')" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
+<input type="file" accept="application/pdf" @change="handleDocUpload($event,'skPangkat')" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-0">
 <i data-lucide="upload-cloud" class="w-8 h-8 text-[#C9A227] mx-auto"></i>
 <p class="text-[11px] font-bold mt-1">Upload SK Pangkat (PDF)</p>
 <template x-if="selectedPegawai.dokumen && selectedPegawai.dokumen.skPangkat && selectedPegawai.dokumen.skPangkat.namaFile">
-<div class="mt-2"><p class="text-xs text-emerald-600 font-semibold" x-text="'✅ '+selectedPegawai.dokumen.skPangkat.namaFile"></p><button @click.stop="openPdfViewer(selectedPegawai.dokumen.skPangkat,'SK Pangkat')" class="bg-[#123B63] text-white text-[10px] px-3 py-1 rounded mt-1">Lihat</button></div>
+<div class="mt-2 relative z-10 pointer-events-none"><p class="text-xs text-emerald-600 font-semibold" x-text="selectedPegawai.dokumen.skPangkat.namaFile"></p><button type="button" @click.stop="openPdfViewer(selectedPegawai.dokumen.skPangkat,'SK Pangkat')" class="pointer-events-auto bg-[#123B63] text-white text-[10px] px-3 py-1 rounded mt-1">Lihat</button></div>
 </template>
 </div>
 </div>
@@ -229,11 +236,11 @@ window._fb = {
 <div><label class="font-bold text-slate-500">TMT Jabatan</label><input type="date" x-model="selectedPegawai.tmtJabatan" @change="savePegawaiEdit()" class="w-full border rounded-lg px-3 py-2 mt-1"></div>
 <div><label class="font-bold text-slate-500">No SK Jabatan</label><input type="text" x-model="selectedPegawai.dokumen.skJabatan.nomor" @change="savePegawaiEdit()" class="w-full border rounded-lg px-3 py-2 mt-1"></div>
 <div class="md:col-span-2 border-2 border-dashed border-[#C9A227]/40 rounded-xl p-4 text-center relative bg-amber-50/30">
-<input type="file" accept="application/pdf" @change="handleDocUpload($event,'skJabatan')" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
+<input type="file" accept="application/pdf" @change="handleDocUpload($event,'skJabatan')" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-0">
 <i data-lucide="upload-cloud" class="w-8 h-8 text-[#C9A227] mx-auto"></i>
 <p class="text-[11px] font-bold mt-1">Upload SK Jabatan (PDF)</p>
 <template x-if="selectedPegawai.dokumen && selectedPegawai.dokumen.skJabatan && selectedPegawai.dokumen.skJabatan.namaFile">
-<div class="mt-2"><p class="text-xs text-emerald-600 font-semibold" x-text="'✅ '+selectedPegawai.dokumen.skJabatan.namaFile"></p><button @click.stop="openPdfViewer(selectedPegawai.dokumen.skJabatan,'SK Jabatan')" class="bg-[#123B63] text-white text-[10px] px-3 py-1 rounded mt-1">Lihat</button></div>
+<div class="mt-2 relative z-10 pointer-events-none"><p class="text-xs text-emerald-600 font-semibold" x-text="selectedPegawai.dokumen.skJabatan.namaFile"></p><button type="button" @click.stop="openPdfViewer(selectedPegawai.dokumen.skJabatan,'SK Jabatan')" class="pointer-events-auto bg-[#123B63] text-white text-[10px] px-3 py-1 rounded mt-1">Lihat</button></div>
 </template>
 </div>
 </div>
@@ -245,14 +252,14 @@ window._fb = {
 <div><label class="font-bold text-slate-500">No SK KGB</label><input type="text" x-model="selectedPegawai.dokumen.skKgb.nomor" @change="savePegawaiEdit()" class="w-full border rounded-lg px-3 py-2 mt-1"></div>
 <div class="p-3 bg-yellow-50 border border-yellow-100 rounded-xl flex items-center gap-3">
   <i data-lucide="badge-percent" class="w-5 h-5 text-yellow-600"></i>
-  <div><p class="font-bold text-xs text-yellow-800">Countdown KGB</p><p class="text-sm font-extrabold" :class="getCountdownClass(selectedPegawai.kgbCountdownDays)" x-text="selectedPegawai.kgbCountdownDays+' hari lagi'"></p></div>
+  <div><p class="font-bold text-xs text-yellow-800">Countdown KGB</p><p class="text-sm font-extrabold" :class="getCountdownClass(selectedPegawai.kgbCountdownDays)" x-text="formatCountdown(selectedPegawai.kgbCountdownDays)"></p></div>
 </div>
 <div class="md:col-span-2 border-2 border-dashed border-[#C9A227]/40 rounded-xl p-4 text-center relative bg-amber-50/30">
-<input type="file" accept="application/pdf" @change="handleDocUpload($event,'skKgb')" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
+<input type="file" accept="application/pdf" @change="handleDocUpload($event,'skKgb')" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-0">
 <i data-lucide="upload-cloud" class="w-8 h-8 text-[#C9A227] mx-auto"></i>
 <p class="text-[11px] font-bold mt-1">Upload SK KGB (PDF)</p>
 <template x-if="selectedPegawai.dokumen && selectedPegawai.dokumen.skKgb && selectedPegawai.dokumen.skKgb.namaFile">
-<div class="mt-2"><p class="text-xs text-emerald-600 font-semibold" x-text="'✅ '+selectedPegawai.dokumen.skKgb.namaFile"></p><button @click.stop="openPdfViewer(selectedPegawai.dokumen.skKgb,'SK KGB')" class="bg-[#123B63] text-white text-[10px] px-3 py-1 rounded mt-1">Lihat</button></div>
+<div class="mt-2 relative z-10 pointer-events-none"><p class="text-xs text-emerald-600 font-semibold" x-text="selectedPegawai.dokumen.skKgb.namaFile"></p><button type="button" @click.stop="openPdfViewer(selectedPegawai.dokumen.skKgb,'SK KGB')" class="pointer-events-auto bg-[#123B63] text-white text-[10px] px-3 py-1 rounded mt-1">Lihat</button></div>
 </template>
 </div>
 </div>
@@ -272,11 +279,11 @@ window._fb = {
 <p class="text-xs text-slate-500 mt-1" x-text="'Nilai: '+selectedPegawai.dokumen.skpKgb.nilai+' | Tahun: '+selectedPegawai.dokumen.skpKgb.tahun"></p>
 </div>
 <div class="md:col-span-2 border-2 border-dashed border-[#C9A227]/40 rounded-xl p-4 text-center relative bg-amber-50/30">
-<input type="file" accept="application/pdf" @change="handleDocUpload($event,'skp')" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
+<input type="file" accept="application/pdf" @change="handleDocUpload($event,'skp')" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-0">
 <i data-lucide="upload-cloud" class="w-8 h-8 text-[#C9A227] mx-auto"></i>
 <p class="text-[11px] font-bold mt-1">Upload File SKP (PDF)</p>
 <template x-if="selectedPegawai.dokumen && selectedPegawai.dokumen.skp && selectedPegawai.dokumen.skp.namaFile">
-<div class="mt-2"><p class="text-xs text-emerald-600 font-semibold" x-text="'✅ '+selectedPegawai.dokumen.skp.namaFile"></p><button @click.stop="openPdfViewer(selectedPegawai.dokumen.skp,'SKP')" class="bg-[#123B63] text-white text-[10px] px-3 py-1 rounded mt-1">Lihat</button></div>
+<div class="mt-2 relative z-10 pointer-events-none"><p class="text-xs text-emerald-600 font-semibold" x-text="selectedPegawai.dokumen.skp.namaFile"></p><button type="button" @click.stop="openPdfViewer(selectedPegawai.dokumen.skp,'SKP')" class="pointer-events-auto bg-[#123B63] text-white text-[10px] px-3 py-1 rounded mt-1">Lihat</button></div>
 </template>
 </div>
 </div>
@@ -296,13 +303,13 @@ window._fb = {
 <!-- KGB MENU -->
 <div x-show="activeMenu==='kgb'" class="space-y-6">
 <h2 class="text-2xl font-extrabold text-[#0B2341]">Daftar KGB</h2>
-<div class="bg-white rounded-3xl p-6 shadow-sm border"><div class="overflow-x-auto"><table class="w-full text-left text-xs"><thead class="bg-slate-50 font-bold"><tr><th class="p-3">Nama</th><th class="p-3">Golongan</th><th class="p-3">TMT KGB Terakhir</th><th class="p-3">TMT KGB Berikutnya</th><th class="p-3">Hari</th><th class="p-3">SK</th><th class="p-3">Aksi</th></tr></thead><tbody><template x-for="p in pegawaiList" :key="p.nip"><tr class="border-b hover:bg-slate-50"><td class="p-3 font-bold" x-text="p.nama"></td><td class="p-3" x-text="p.golongan"></td><td class="p-3 text-slate-500" x-text="p.tglKgbTerakhir||'-'"></td><td class="p-3"><input type="date" x-model="p.tglKgbBerikutnya" @change="onTableDateChange(p)" class="border rounded px-1 py-0.5 text-xs"></td><td class="p-3 font-bold" :class="getCountdownClass(p.kgbCountdownDays)" x-text="p.kgbCountdownDays+'h'"></td><td class="p-3"><span x-text="p.dokumen&&p.dokumen.skKgb&&p.dokumen.skKgb.namaFile?'✅':'❌'"></span></td><td class="p-3"><button @click="viewPegawaiProfileByNip(p.nip)" class="text-[#123B63] text-[10px] underline">Detail</button></td></tr></template></tbody></table></div></div>
+<div class="bg-white rounded-3xl p-6 shadow-sm border"><div class="overflow-x-auto"><table class="w-full text-left text-xs"><thead class="bg-slate-50 font-bold"><tr><th class="p-3">Nama</th><th class="p-3">Golongan</th><th class="p-3">TMT KGB Terakhir</th><th class="p-3">TMT KGB Berikutnya</th><th class="p-3">Hari</th><th class="p-3">SK</th><th class="p-3">Aksi</th></tr></thead><tbody><template x-for="p in pegawaiList" :key="p.nip"><tr class="border-b hover:bg-slate-50"><td class="p-3 font-bold" x-text="p.nama"></td><td class="p-3" x-text="p.golongan"></td><td class="p-3 text-slate-500" x-text="p.tglKgbTerakhir||'-'"></td><td class="p-3"><input type="date" x-model="p.tglKgbBerikutnya" @change="onTableDateChange(p)" class="border rounded px-1 py-0.5 text-xs"></td><td class="p-3 font-bold" :class="getCountdownClass(p.kgbCountdownDays)" x-text="formatCountdown(p.kgbCountdownDays,true)"></td><td class="p-3"><span x-text="p.dokumen&&p.dokumen.skKgb&&p.dokumen.skKgb.namaFile?'✅':'❌'"></span></td><td class="p-3"><button type="button" @click="viewPegawaiProfileByNip(p.nip)" class="text-[#123B63] text-[10px] underline">Detail</button></td></tr></template></tbody></table></div></div>
 </div>
 
 <!-- PANGKAT MENU -->
 <div x-show="activeMenu==='pangkat'" class="space-y-6">
 <h2 class="text-2xl font-extrabold text-[#0B2341]">Kepangkatan</h2>
-<div class="bg-white rounded-3xl p-6 shadow-sm border"><div class="overflow-x-auto"><table class="w-full text-left text-xs"><thead class="bg-slate-50 font-bold"><tr><th class="p-3">Nama</th><th class="p-3">Nama Pangkat</th><th class="p-3">Golongan</th><th class="p-3">TMT Berikutnya</th><th class="p-3">Pangkat Berikutnya</th><th class="p-3">Hari</th><th class="p-3">SK</th><th class="p-3">Aksi</th></tr></thead><tbody><template x-for="p in pegawaiList" :key="p.nip"><tr class="border-b hover:bg-slate-50"><td class="p-3 font-bold" x-text="p.nama"></td><td class="p-3 text-slate-600" x-text="p.namaPangkat||'-'"></td><td class="p-3" x-text="p.golongan"></td><td class="p-3"><input type="date" x-model="p.tglPangkatBerikutnya" @change="onTableDateChange(p)" class="border rounded px-1 py-0.5 text-xs"></td><td class="p-3 text-slate-600" x-text="p.pangkatBerikutnya||'-'"></td><td class="p-3 font-bold" :class="getCountdownClass(p.pangkatCountdownDays)" x-text="p.pangkatCountdownDays+'h'"></td><td class="p-3"><span x-text="p.dokumen&&p.dokumen.skPangkat&&p.dokumen.skPangkat.namaFile?'✅':'❌'"></span></td><td class="p-3"><button @click="viewPegawaiProfileByNip(p.nip)" class="text-[#123B63] text-[10px] underline">Detail</button></td></tr></template></tbody></table></div></div>
+<div class="bg-white rounded-3xl p-6 shadow-sm border"><div class="overflow-x-auto"><table class="w-full text-left text-xs"><thead class="bg-slate-50 font-bold"><tr><th class="p-3">Nama</th><th class="p-3">Nama Pangkat</th><th class="p-3">Golongan</th><th class="p-3">TMT Berikutnya</th><th class="p-3">Pangkat Berikutnya</th><th class="p-3">Hari</th><th class="p-3">SK</th><th class="p-3">Aksi</th></tr></thead><tbody><template x-for="p in pegawaiList" :key="p.nip"><tr class="border-b hover:bg-slate-50"><td class="p-3 font-bold" x-text="p.nama"></td><td class="p-3 text-slate-600" x-text="p.namaPangkat||'-'"></td><td class="p-3" x-text="p.golongan"></td><td class="p-3"><input type="date" x-model="p.tglPangkatBerikutnya" @change="onTableDateChange(p)" class="border rounded px-1 py-0.5 text-xs"></td><td class="p-3 text-slate-600" x-text="p.pangkatBerikutnya||'-'"></td><td class="p-3 font-bold" :class="getCountdownClass(p.pangkatCountdownDays)" x-text="formatCountdown(p.pangkatCountdownDays,true)"></td><td class="p-3"><span x-text="p.dokumen&&p.dokumen.skPangkat&&p.dokumen.skPangkat.namaFile?'✅':'❌'"></span></td><td class="p-3"><button type="button" @click="viewPegawaiProfileByNip(p.nip)" class="text-[#123B63] text-[10px] underline">Detail</button></td></tr></template></tbody></table></div></div>
 </div>
 
 <!-- CUTI MENU -->
@@ -399,8 +406,8 @@ window._fb = {
 <!-- PDF VIEWER -->
 <div x-show="showPdfViewer" class="pdf-viewer-overlay" x-cloak @click.self="closePdfViewer()">
 <div class="pdf-viewer-container">
-<div class="pdf-viewer-header"><div><h3 class="font-bold text-sm" x-text="currentPdfDoc.namaFile"></h3><p class="text-[10px] text-slate-300" x-text="currentPdfType"></p></div><div class="flex items-center gap-2"><a :href="currentPdfDoc.base64||'#'" :download="currentPdfDoc.namaFile||'dokumen.pdf'" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center"><i data-lucide="download" class="w-4 h-4 mr-1"></i> Download</a><button @click="closePdfViewer()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button></div></div>
-<div class="pdf-viewer-body"><iframe :src="currentPdfDoc.base64" style="width:100%;height:100%;border:none;border-radius:12px;background:#fff;"></iframe></div>
+<div class="pdf-viewer-header"><div><h3 class="font-bold text-sm" x-text="currentPdfDoc.namaFile"></h3><p class="text-[10px] text-slate-300" x-text="currentPdfType"></p></div><div class="flex items-center gap-2"><a :href="currentPdfDoc.url||currentPdfDoc.base64||'#'" :download="currentPdfDoc.namaFile||'dokumen.pdf'" target="_blank" rel="noopener" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center"><i data-lucide="download" class="w-4 h-4 mr-1"></i> Download</a><button type="button" aria-label="Tutup PDF" @click="closePdfViewer()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button></div></div>
+<div class="pdf-viewer-body"><iframe title="Pratinjau dokumen PDF" :src="currentPdfDoc.url||currentPdfDoc.base64"></iframe></div>
 </div>
 </div>
 
@@ -415,6 +422,7 @@ function sipandaApp() {
         loginLoading: false,
         loginError: '',
         firestoreOnline: false,
+        databaseError: '',
         activeMenu: 'dashboard',
         searchQuery: '',
         pegawaiSearch: '',
@@ -423,7 +431,7 @@ function sipandaApp() {
         showModalAddPegawai: false,
         showModalAddCuti: false,
         showPdfViewer: false,
-        currentPdfDoc: { namaFile: '', base64: '' },
+        currentPdfDoc: { namaFile: '', url: '', base64: '' },
         currentPdfType: '',
         sessionUser: { nama: 'Admin', email: '', foto: '' },
         loginForm: { username: '', password: '' },
@@ -441,6 +449,8 @@ function sipandaApp() {
         _charts: {},
         _unsubPegawai: null,
         _unsubCuti: null,
+        _pegawaiReady: false,
+        _cutiReady: false,
 
         async initApp() {
             // Tunggu Firebase modul siap
@@ -455,7 +465,7 @@ function sipandaApp() {
                     this.sessionUser = { nama: user.displayName || 'Admin', email: user.email, foto: user.photoURL || '' };
                     this.isLoggedIn = true;
                     this.loadingMsg = 'Memuat data pegawai...';
-                    await this.subscribeFirestore();
+                    this.subscribeFirestore();
                     this.isLoading = false;
                     setTimeout(() => { this.initCharts(); lucide.createIcons(); }, 500);
                 } else {
@@ -468,7 +478,10 @@ function sipandaApp() {
 
         async subscribeFirestore() {
             const { db, collection, onSnapshot } = window._fb;
-            this.firestoreOnline = true;
+            this.firestoreOnline = false;
+            this.databaseError = '';
+            this._pegawaiReady = false;
+            this._cutiReady = false;
 
             // Real-time listener pegawai
             if (this._unsubPegawai) this._unsubPegawai();
@@ -478,10 +491,16 @@ function sipandaApp() {
                 this.recalculateAllCountdowns();
                 this.hitungUrgensiDanMasaBerlaku();
                 this.updateStats();
+                if (this.selectedPegawai) {
+                    this.selectedPegawai = this.pegawaiList.find(p => p.nip === this.selectedPegawai.nip) || null;
+                    if (!this.selectedPegawai) this.activeMenu = 'pegawai';
+                }
+                this._pegawaiReady = true;
+                this._updateConnectionStatus();
                 setTimeout(() => this.initCharts(), 300);
             }, (err) => {
                 console.error('Firestore pegawai error:', err);
-                this.firestoreOnline = false;
+                this._handleDatabaseError(err);
             });
 
             // Real-time listener cuti
@@ -489,9 +508,29 @@ function sipandaApp() {
             this._unsubCuti = onSnapshot(collection(db, 'cuti'), (snap) => {
                 this.cutiList = snap.docs.map(d => d.data());
                 this.updateStats();
+                this._cutiReady = true;
+                this._updateConnectionStatus();
+                if (this.activeMenu === 'cuti') setTimeout(() => this.renderCalendar(), 100);
             }, (err) => {
                 console.error('Firestore cuti error:', err);
+                this._handleDatabaseError(err);
             });
+        },
+
+        _updateConnectionStatus() {
+            this.firestoreOnline = this._pegawaiReady && this._cutiReady;
+            if (this.firestoreOnline) this.databaseError = '';
+        },
+
+        _handleDatabaseError(error) {
+            this.firestoreOnline = false;
+            const rawMessage = error?.message || 'Koneksi ke Firestore gagal.';
+            const normalized = rawMessage.toLowerCase();
+            this.databaseError = normalized.includes('service_disabled') || normalized.includes('api has not been used') || normalized.includes('disabled') || normalized.includes('failed-precondition')
+                ? 'Database Firestore belum dibuat atau Cloud Firestore API belum diaktifkan.'
+                : normalized.includes('permission-denied')
+                    ? 'Akses database ditolak. Periksa Firestore Rules.'
+                    : rawMessage;
         },
 
         async handleLogin() {
@@ -528,99 +567,167 @@ function sipandaApp() {
             const { db, doc, setDoc } = window._fb;
             try {
                 await setDoc(doc(db, 'pegawai', pegawai.nip), pegawai);
-            } catch(e) { console.error('Save pegawai error:', e); alert('Gagal menyimpan: ' + e.message); }
+                return true;
+            } catch(e) {
+                console.error('Save pegawai error:', e);
+                this._handleDatabaseError(e);
+                throw new Error('Gagal menyimpan data pegawai: ' + e.message);
+            }
         },
 
         async _deletePegawaiFromFS(nip) {
             const { db, doc, deleteDoc } = window._fb;
-            try { await deleteDoc(doc(db, 'pegawai', nip)); } catch(e) { console.error(e); }
+            try {
+                await deleteDoc(doc(db, 'pegawai', nip));
+            } catch(e) {
+                console.error(e);
+                this._handleDatabaseError(e);
+                throw new Error('Gagal menghapus pegawai: ' + e.message);
+            }
         },
 
         async _saveCutiToFS(cuti) {
             const { db, doc, setDoc } = window._fb;
             try {
                 await setDoc(doc(db, 'cuti', cuti.cutiId), cuti);
-            } catch(e) { console.error('Save cuti error:', e); alert('Gagal menyimpan: ' + e.message); }
+                return true;
+            } catch(e) {
+                console.error('Save cuti error:', e);
+                this._handleDatabaseError(e);
+                throw new Error('Gagal menyimpan data cuti: ' + e.message);
+            }
         },
 
         async _deleteCutiFromFS(cutiId) {
             const { db, doc, deleteDoc } = window._fb;
-            try { await deleteDoc(doc(db, 'cuti', cutiId)); } catch(e) { console.error(e); }
+            try {
+                await deleteDoc(doc(db, 'cuti', cutiId));
+            } catch(e) {
+                console.error(e);
+                this._handleDatabaseError(e);
+                throw new Error('Gagal menghapus data cuti: ' + e.message);
+            }
+        },
+
+        async _uploadFile(file, folder) {
+            const { storage, ref, uploadBytes, getDownloadURL } = window._fb;
+            const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+            const storagePath = `${folder}/${Date.now()}-${safeName}`;
+            const storageRef = ref(storage, storagePath);
+            try {
+                await uploadBytes(storageRef, file, { contentType: file.type });
+                return { url: await getDownloadURL(storageRef), storagePath };
+            } catch (error) {
+                const message = error?.code === 'storage/bucket-not-found'
+                    ? 'Firebase Storage belum dibuat untuk proyek ini.'
+                    : error.message;
+                throw new Error(message);
+            }
+        },
+
+        async _deleteStoragePath(storagePath) {
+            if (!storagePath) return;
+            const { storage, ref, deleteObject } = window._fb;
+            try {
+                await deleteObject(ref(storage, storagePath));
+            } catch (error) {
+                if (error?.code !== 'storage/object-not-found') console.warn('Gagal menghapus file lama:', error);
+            }
         },
 
         // ── DATA OPS ──────────────────────────────────────────────
         migrateData() {
             this.pegawaiList = this.pegawaiList.map(p => {
                 if (!p.dokumen) p.dokumen = {};
-                if (!p.dokumen.skPangkat) p.dokumen.skPangkat = { namaFile:"", base64:"" };
-                if (!p.dokumen.skJabatan) p.dokumen.skJabatan = { nomor:"", namaFile:"", base64:"" };
-                if (!p.dokumen.skKgb) p.dokumen.skKgb = { nomor:"", namaFile:"", base64:"" };
-                if (!p.dokumen.skp) p.dokumen.skp = { namaFile:"", base64:"" };
+                if (!p.dokumen.skPangkat) p.dokumen.skPangkat = { namaFile:"", url:"", storagePath:"" };
+                if (!p.dokumen.skJabatan) p.dokumen.skJabatan = { nomor:"", namaFile:"", url:"", storagePath:"" };
+                if (!p.dokumen.skKgb) p.dokumen.skKgb = { nomor:"", namaFile:"", url:"", storagePath:"" };
+                if (!p.dokumen.skp) p.dokumen.skp = { namaFile:"", url:"", storagePath:"" };
                 if (!p.dokumen.skpKgb) p.dokumen.skpKgb = { nilai:80, predikat:"Sesuai Ekspektasi", tahun:2025 };
                 if (!p.gender) p.gender = "Laki-laki";
                 if (!p.pendidikan) p.pendidikan = "S1";
                 if (!p.namaPangkat) p.namaPangkat = "";
                 if (!p.pangkatBerikutnya) p.pangkatBerikutnya = "";
                 if (!p.tmtJabatan) p.tmtJabatan = "";
+                if (!p.fotoStoragePath) p.fotoStoragePath = "";
+                if (!Number.isFinite(p.pangkatCountdownDays)) p.pangkatCountdownDays = null;
+                if (!Number.isFinite(p.kgbCountdownDays)) p.kgbCountdownDays = null;
+                if (!Number.isFinite(p.pensiunCountdown)) p.pensiunCountdown = null;
                 return p;
             });
         },
 
+        _parseLocalDate(dateString) {
+            if (!dateString || typeof dateString !== 'string') return null;
+            const [year, month, day] = dateString.split('-').map(Number);
+            if (!year || !month || !day) return null;
+            const date = new Date(year, month - 1, day);
+            date.setHours(0, 0, 0, 0);
+            return Number.isNaN(date.getTime()) ? null : date;
+        },
+
+        _daysUntil(dateString) {
+            const target = this._parseLocalDate(dateString);
+            if (!target) return null;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            return Math.round((target - today) / 86400000);
+        },
+
+        _calculateRetirement(tglLahir) {
+            const lahir = this._parseLocalDate(tglLahir);
+            if (!lahir) return null;
+            const pensiun = new Date(lahir.getFullYear() + 58, lahir.getMonth(), lahir.getDate());
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            return Math.round((pensiun - today) / 86400000);
+        },
+
+        _formatLocalDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        },
+
+        _todayString() {
+            return this._formatLocalDate(new Date());
+        },
+
         recalculateAllCountdowns() {
-            const today = new Date(); today.setHours(0,0,0,0);
             this.pegawaiList.forEach(p => {
-                if (p.tglPangkatBerikutnya) {
-                    const tmt = new Date(p.tglPangkatBerikutnya); tmt.setHours(0,0,0,0);
-                    p.pangkatCountdownDays = Math.max(0, Math.floor((tmt - today) / 86400000));
-                }
-                if (p.tglKgbBerikutnya) {
-                    const tmt = new Date(p.tglKgbBerikutnya); tmt.setHours(0,0,0,0);
-                    p.kgbCountdownDays = Math.max(0, Math.floor((tmt - today) / 86400000));
-                }
-                if (p.tglLahir) {
-                    const lahir = new Date(p.tglLahir);
-                    const pensiun = new Date(lahir.getFullYear()+58, lahir.getMonth(), lahir.getDate());
-                    pensiun.setHours(0,0,0,0);
-                    p.pensiunCountdown = Math.max(0, Math.floor((pensiun - today) / 86400000));
-                }
+                p.pangkatCountdownDays = this._daysUntil(p.tglPangkatBerikutnya);
+                p.kgbCountdownDays = this._daysUntil(p.tglKgbBerikutnya);
+                p.pensiunCountdown = this._calculateRetirement(p.tglLahir);
             });
         },
 
         recalcSelected() {
             if (!this.selectedPegawai) return;
-            const today = new Date(); today.setHours(0,0,0,0);
-            if (this.selectedPegawai.tglPangkatBerikutnya) {
-                const tmt = new Date(this.selectedPegawai.tglPangkatBerikutnya); tmt.setHours(0,0,0,0);
-                this.selectedPegawai.pangkatCountdownDays = Math.max(0, Math.floor((tmt - today) / 86400000));
-            }
-            if (this.selectedPegawai.tglKgbBerikutnya) {
-                const tmt = new Date(this.selectedPegawai.tglKgbBerikutnya); tmt.setHours(0,0,0,0);
-                this.selectedPegawai.kgbCountdownDays = Math.max(0, Math.floor((tmt - today) / 86400000));
-            }
+            this.selectedPegawai.pangkatCountdownDays = this._daysUntil(this.selectedPegawai.tglPangkatBerikutnya);
+            this.selectedPegawai.kgbCountdownDays = this._daysUntil(this.selectedPegawai.tglKgbBerikutnya);
+            this.selectedPegawai.pensiunCountdown = this._calculateRetirement(this.selectedPegawai.tglLahir);
         },
 
-        onTableDateChange(p) {
-            const today = new Date(); today.setHours(0,0,0,0);
-            if (p.tglPangkatBerikutnya) {
-                const tmt = new Date(p.tglPangkatBerikutnya); tmt.setHours(0,0,0,0);
-                p.pangkatCountdownDays = Math.max(0, Math.floor((tmt - today) / 86400000));
+        async onTableDateChange(p) {
+            p.pangkatCountdownDays = this._daysUntil(p.tglPangkatBerikutnya);
+            p.kgbCountdownDays = this._daysUntil(p.tglKgbBerikutnya);
+            try {
+                await this._savePegawaiToFS(JSON.parse(JSON.stringify(p)));
+            } catch (error) {
+                alert(error.message);
             }
-            if (p.tglKgbBerikutnya) {
-                const tmt = new Date(p.tglKgbBerikutnya); tmt.setHours(0,0,0,0);
-                p.kgbCountdownDays = Math.max(0, Math.floor((tmt - today) / 86400000));
-            }
-            this._savePegawaiToFS(p);
         },
 
         updateStats() {
             this.stats.totalPegawai = this.pegawaiList.length;
-            const hariIni = new Date().toISOString().split('T')[0];
+            const hariIni = this._todayString();
             const active = this.cutiList.filter(c => c.tanggalMulai <= hariIni && c.tanggalSelesai >= hariIni);
             this.stats.pegawaiCuti = active.length;
             this.stats.pegawaiCutiName = active.map(c => c.nama).join(", ");
-            this.stats.pangkatSegera = this.pegawaiList.filter(p => p.pangkatCountdownDays <= 180 && p.pangkatCountdownDays > 0).length;
-            this.stats.kgbSegera = this.pegawaiList.filter(p => p.kgbCountdownDays <= 180 && p.kgbCountdownDays > 0).length;
-            this.stats.pensiunSegera = this.pegawaiList.filter(p => p.pensiunCountdown > 0 && p.pensiunCountdown <= 730).length;
+            this.stats.pangkatSegera = this.pegawaiList.filter(p => p.pangkatCountdownDays !== null && p.pangkatCountdownDays <= 180).length;
+            this.stats.kgbSegera = this.pegawaiList.filter(p => p.kgbCountdownDays !== null && p.kgbCountdownDays <= 180).length;
+            this.stats.pensiunSegera = this.pegawaiList.filter(p => p.pensiunCountdown !== null && p.pensiunCountdown <= 730).length;
         },
 
         hitungUrgensiDanMasaBerlaku() {
@@ -632,12 +739,12 @@ function sipandaApp() {
                 if (p.dokumen?.skKgb?.namaFile) ada++;
                 if (p.dokumen?.skp?.namaFile) ada++;
                 p.progressBerkas = Math.round((ada/total)*100);
-                if (p.pangkatCountdownDays > 0 && p.pangkatCountdownDays <= 90)
-                    this.prioritasList.push({ nip: p.nip, nama: p.nama, golongan: p.golongan, jabatan: p.jabatan, status: "PANGKAT", keterangan: p.pangkatCountdownDays+' hari → TMT Pangkat' });
-                if (p.kgbCountdownDays > 0 && p.kgbCountdownDays <= 45)
-                    this.prioritasList.push({ nip: p.nip, nama: p.nama, golongan: p.golongan, jabatan: p.jabatan, status: "KGB", keterangan: p.kgbCountdownDays+' hari → TMT KGB' });
-                if (p.pensiunCountdown > 0 && p.pensiunCountdown <= 365)
-                    this.prioritasList.push({ nip: p.nip, nama: p.nama, golongan: p.golongan, jabatan: p.jabatan, status: "PENSIUN", keterangan: p.pensiunCountdown+' hari → Pensiun' });
+                if (p.pangkatCountdownDays !== null && p.pangkatCountdownDays <= 90)
+                    this.prioritasList.push({ nip: p.nip, nama: p.nama, golongan: p.golongan, jabatan: p.jabatan, status: "PANGKAT", keterangan: this.formatCountdown(p.pangkatCountdownDays)+' - TMT Pangkat' });
+                if (p.kgbCountdownDays !== null && p.kgbCountdownDays <= 45)
+                    this.prioritasList.push({ nip: p.nip, nama: p.nama, golongan: p.golongan, jabatan: p.jabatan, status: "KGB", keterangan: this.formatCountdown(p.kgbCountdownDays)+' - TMT KGB' });
+                if (p.pensiunCountdown !== null && p.pensiunCountdown <= 365)
+                    this.prioritasList.push({ nip: p.nip, nama: p.nama, golongan: p.golongan, jabatan: p.jabatan, status: "PENSIUN", keterangan: this.formatCountdown(p.pensiunCountdown)+' - Pensiun' });
             });
         },
 
@@ -648,76 +755,109 @@ function sipandaApp() {
                     || (p.jabatan||'').toLowerCase().includes(this.pegawaiSearch.toLowerCase());
                 const g = this.filterGolongan === '' || p.golongan === this.filterGolongan;
                 let u = true;
-                if (this.filterUrgensi === 'red') u = p.pangkatCountdownDays <= 30 || p.kgbCountdownDays <= 30;
-                else if (this.filterUrgensi === 'orange') u = (p.pangkatCountdownDays > 30 && p.pangkatCountdownDays <= 90);
-                else if (this.filterUrgensi === 'yellow') u = (p.pangkatCountdownDays > 90 && p.pangkatCountdownDays <= 180);
-                else if (this.filterUrgensi === 'green') u = p.pangkatCountdownDays > 180;
+                if (this.filterUrgensi === 'red') u = (p.pangkatCountdownDays !== null && p.pangkatCountdownDays <= 30) || (p.kgbCountdownDays !== null && p.kgbCountdownDays <= 30);
+                else if (this.filterUrgensi === 'orange') u = p.pangkatCountdownDays !== null && p.pangkatCountdownDays > 30 && p.pangkatCountdownDays <= 90;
+                else if (this.filterUrgensi === 'yellow') u = p.pangkatCountdownDays !== null && p.pangkatCountdownDays > 90 && p.pangkatCountdownDays <= 180;
+                else if (this.filterUrgensi === 'green') u = p.pangkatCountdownDays !== null && p.pangkatCountdownDays > 180;
                 return q && g && u;
             });
         },
 
         async saveNewPegawai() {
             if (!this.newPegawaiForm.nip || !this.newPegawaiForm.nama) { alert("NIP dan Nama wajib diisi!"); return; }
-            if (this.pegawaiList.some(p => p.nip === this.newPegawaiForm.nip)) { alert("NIP sudah ada!"); return; }
+            const normalizedNip = this.newPegawaiForm.nip.trim();
+            if (this.pegawaiList.some(p => p.nip === normalizedNip)) { alert("NIP sudah ada!"); return; }
+            if (!/^\d{8,20}$/.test(normalizedNip)) { alert("NIP harus terdiri dari 8-20 digit angka."); return; }
             const item = {
-                ...this.newPegawaiForm,
+                ...this.newPegawaiForm, nip: normalizedNip, nama: this.newPegawaiForm.nama.trim(),
                 namaPangkat: "", pangkatBerikutnya: "", tmtJabatan: "",
-                tmtPns: this.newPegawaiForm.tmtPns||"", pangkatCountdownDays: 0, kgbCountdownDays: 0,
-                pensiunCountdown: 0, progressBerkas: 0,
+                tmtPns: this.newPegawaiForm.tmtPns||"", pangkatCountdownDays: null, kgbCountdownDays: null,
+                pensiunCountdown: this._calculateRetirement(this.newPegawaiForm.tglLahir), progressBerkas: 0,
                 tglPangkatTerakhir: "", tglPangkatBerikutnya: "",
                 tglKgbTerakhir: "", tglKgbBerikutnya: "",
-                foto: "",
+                foto: "", fotoStoragePath: "",
                 dokumen: {
-                    skPangkat: { namaFile:"", base64:"" },
-                    skJabatan: { nomor:"", namaFile:"", base64:"" },
-                    skKgb: { nomor:"", namaFile:"", base64:"" },
-                    skp: { namaFile:"", base64:"" },
+                    skPangkat: { namaFile:"", url:"", storagePath:"" },
+                    skJabatan: { nomor:"", namaFile:"", url:"", storagePath:"" },
+                    skKgb: { nomor:"", namaFile:"", url:"", storagePath:"" },
+                    skp: { namaFile:"", url:"", storagePath:"" },
                     skpKgb: { nilai:80, predikat:"Sesuai Ekspektasi", tahun:new Date().getFullYear() }
                 }
             };
-            await this._savePegawaiToFS(item);
-            this.showModalAddPegawai = false;
-            this.newPegawaiForm = { nip:'', nama:'', golongan:'II/a', jabatan:'', noHp:'', email:'', gender:'Laki-laki', tglLahir:'1995-01-01', pendidikan:'S1' };
-            alert("✅ Pegawai berhasil ditambahkan!");
+            try {
+                await this._savePegawaiToFS(item);
+                this.showModalAddPegawai = false;
+                this.newPegawaiForm = { nip:'', nama:'', golongan:'II/a', jabatan:'', noHp:'', email:'', gender:'Laki-laki', tglLahir:'1995-01-01', pendidikan:'S1' };
+                alert("Pegawai berhasil ditambahkan!");
+            } catch (error) {
+                alert(error.message);
+            }
         },
 
-        async savePegawaiEdit() {
+        async savePegawaiEdit(showError = true) {
             if (!this.selectedPegawai) return;
-            await this._savePegawaiToFS(JSON.parse(JSON.stringify(this.selectedPegawai)));
+            this.recalcSelected();
+            try {
+                await this._savePegawaiToFS(JSON.parse(JSON.stringify(this.selectedPegawai)));
+            } catch (error) {
+                if (showError) alert(error.message);
+                throw error;
+            }
         },
 
         async hapusPegawai(nip) {
             if (!confirm("Hapus pegawai ini? Data cuti juga akan dihapus.")) return;
-            await this._deletePegawaiFromFS(nip);
-            // hapus cuti terkait
-            const cutiTerkait = this.cutiList.filter(c => c.nip === nip);
-            for (const c of cutiTerkait) await this._deleteCutiFromFS(c.cutiId);
-            this.activeMenu = 'pegawai';
-            this.selectedPegawai = null;
+            try {
+                const pegawai = this.pegawaiList.find(p => p.nip === nip);
+                const storagePaths = [
+                    pegawai?.fotoStoragePath,
+                    pegawai?.dokumen?.skPangkat?.storagePath,
+                    pegawai?.dokumen?.skJabatan?.storagePath,
+                    pegawai?.dokumen?.skKgb?.storagePath,
+                    pegawai?.dokumen?.skp?.storagePath
+                ].filter(Boolean);
+                const cutiTerkait = this.cutiList.filter(c => c.nip === nip);
+                for (const c of cutiTerkait) await this._deleteCutiFromFS(c.cutiId);
+                await this._deletePegawaiFromFS(nip);
+                await Promise.all(storagePaths.map(path => this._deleteStoragePath(path)));
+                this.activeMenu = 'pegawai';
+                this.selectedPegawai = null;
+            } catch (error) {
+                alert(error.message);
+            }
         },
 
         async saveNewCuti() {
             if (!this.newCutiForm.nip || !this.newCutiForm.tanggalMulai || !this.newCutiForm.tanggalSelesai) { alert("Lengkapi semua field!"); return; }
+            if (this.newCutiForm.tanggalSelesai < this.newCutiForm.tanggalMulai) { alert("Tanggal selesai tidak boleh sebelum tanggal mulai."); return; }
             const peg = this.pegawaiList.find(p => p.nip === this.newCutiForm.nip);
             if (!peg) { alert("Pegawai tidak ditemukan!"); return; }
             const cuti = {
-                cutiId: "C-"+Math.floor(1000+Math.random()*9000),
+                cutiId: "C-"+crypto.randomUUID(),
                 nip: this.newCutiForm.nip, nama: peg.nama,
                 jenisCuti: this.newCutiForm.jenisCuti,
                 tanggalMulai: this.newCutiForm.tanggalMulai,
                 tanggalSelesai: this.newCutiForm.tanggalSelesai,
                 keterangan: this.newCutiForm.keterangan || '-'
             };
-            await this._saveCutiToFS(cuti);
-            this.newCutiForm = { nip:'', jenisCuti:'Cuti Tahunan', keterangan:'', tanggalMulai:'', tanggalSelesai:'' };
-            this.showModalAddCuti = false;
-            if (this.activeMenu === 'cuti') setTimeout(() => this.renderCalendar(), 300);
+            try {
+                await this._saveCutiToFS(cuti);
+                this.newCutiForm = { nip:'', jenisCuti:'Cuti Tahunan', keterangan:'', tanggalMulai:'', tanggalSelesai:'' };
+                this.showModalAddCuti = false;
+                if (this.activeMenu === 'cuti') setTimeout(() => this.renderCalendar(), 300);
+            } catch (error) {
+                alert(error.message);
+            }
         },
 
         async hapusCuti(id) {
             if (confirm("Hapus data ini?")) {
-                await this._deleteCutiFromFS(id);
-                if (this.activeMenu === 'cuti') setTimeout(() => this.renderCalendar(), 300);
+                try {
+                    await this._deleteCutiFromFS(id);
+                    if (this.activeMenu === 'cuti') setTimeout(() => this.renderCalendar(), 300);
+                } catch (error) {
+                    alert(error.message);
+                }
             }
         },
 
@@ -731,73 +871,101 @@ function sipandaApp() {
             }
         },
 
-        uploadFoto(event) {
+        async uploadFoto(event) {
             const file = event.target.files[0];
             if (!file) return;
-            if (file.size > 2*1024*1024) { alert("Max 2MB!"); return; }
-            if (!file.type.startsWith('image/')) { alert("Harus gambar!"); return; }
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                this.selectedPegawai.foto = e.target.result;
-                const idx = this.pegawaiList.findIndex(p => p.nip === this.selectedPegawai.nip);
-                if (idx !== -1) this.pegawaiList[idx].foto = e.target.result;
-                await this.savePegawaiEdit();
-                this.selectedPegawai = { ...this.selectedPegawai };
+            if (file.size > 2*1024*1024) { alert("Max 2MB!"); event.target.value = ''; return; }
+            if (!file.type.startsWith('image/')) { alert("Harus gambar!"); event.target.value = ''; return; }
+            const targetNip = this.selectedPegawai?.nip;
+            const target = this.pegawaiList.find(p => p.nip === targetNip);
+            if (!target) { alert('Pegawai tidak ditemukan.'); event.target.value = ''; return; }
+            const oldUrl = target.foto;
+            const oldPath = target.fotoStoragePath;
+            let uploaded = null;
+            try {
+                uploaded = await this._uploadFile(file, `pegawai/${targetNip}/foto`);
+                const currentTarget = this.pegawaiList.find(p => p.nip === targetNip);
+                if (!currentTarget) throw new Error('Pegawai sudah tidak tersedia.');
+                currentTarget.foto = uploaded.url;
+                currentTarget.fotoStoragePath = uploaded.storagePath;
+                await this._savePegawaiToFS(JSON.parse(JSON.stringify(currentTarget)));
+                await this._deleteStoragePath(oldPath);
                 setTimeout(() => lucide.createIcons(), 200);
-            };
-            reader.readAsDataURL(file);
+            } catch (error) {
+                const currentTarget = this.pegawaiList.find(p => p.nip === targetNip);
+                if (currentTarget) {
+                    currentTarget.foto = oldUrl;
+                    currentTarget.fotoStoragePath = oldPath;
+                }
+                if (uploaded?.storagePath) await this._deleteStoragePath(uploaded.storagePath);
+                alert('Gagal mengunggah foto: ' + error.message);
+            }
             event.target.value = '';
         },
 
-        handleDocUpload(event, type) {
+        async handleDocUpload(event, type) {
             const file = event.target.files[0];
             if (!file) return;
-            if (file.type !== "application/pdf") { alert("Harus PDF!"); return; }
-            if (file.size > 5*1024*1024) { alert("Max 5MB!"); return; }
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                const data = e.target.result;
-                if (!this.selectedPegawai.dokumen) this.selectedPegawai.dokumen = {};
-                if (!this.selectedPegawai.dokumen.skPangkat) this.selectedPegawai.dokumen.skPangkat = {};
-                if (!this.selectedPegawai.dokumen.skJabatan) this.selectedPegawai.dokumen.skJabatan = {};
-                if (!this.selectedPegawai.dokumen.skKgb) this.selectedPegawai.dokumen.skKgb = {};
-                if (!this.selectedPegawai.dokumen.skp) this.selectedPegawai.dokumen.skp = {};
-                if (!this.selectedPegawai.dokumen.skpKgb) this.selectedPegawai.dokumen.skpKgb = { nilai:80, predikat:"Sesuai Ekspektasi", tahun:2025 };
-
-                if (type === 'skPangkat') this.selectedPegawai.dokumen.skPangkat = { namaFile: file.name, base64: data };
-                else if (type === 'skJabatan') this.selectedPegawai.dokumen.skJabatan = { ...this.selectedPegawai.dokumen.skJabatan, namaFile: file.name, base64: data };
-                else if (type === 'skKgb') this.selectedPegawai.dokumen.skKgb = { ...this.selectedPegawai.dokumen.skKgb, namaFile: file.name, base64: data };
-                else if (type === 'skp') this.selectedPegawai.dokumen.skp = { namaFile: file.name, base64: data };
-
-                const idx = this.pegawaiList.findIndex(p => p.nip === this.selectedPegawai.nip);
-                if (idx !== -1) this.pegawaiList[idx].dokumen = JSON.parse(JSON.stringify(this.selectedPegawai.dokumen));
-                await this.savePegawaiEdit();
-                alert("✅ "+type.toUpperCase()+" berhasil diupload!");
-            };
-            reader.readAsDataURL(file);
+            if (file.type !== "application/pdf") { alert("Harus PDF!"); event.target.value = ''; return; }
+            if (file.size > 5*1024*1024) { alert("Max 5MB!"); event.target.value = ''; return; }
+            const docMap = { skPangkat: 'skPangkat', skJabatan: 'skJabatan', skKgb: 'skKgb', skp: 'skp' };
+            const docKey = docMap[type];
+            if (!docKey) { alert('Jenis dokumen tidak valid.'); return; }
+            const targetNip = this.selectedPegawai?.nip;
+            const target = this.pegawaiList.find(p => p.nip === targetNip);
+            if (!target) { alert('Pegawai tidak ditemukan.'); event.target.value = ''; return; }
+            const oldDoc = { ...(target.dokumen[docKey] || {}) };
+            let uploaded = null;
+            try {
+                uploaded = await this._uploadFile(file, `pegawai/${targetNip}/dokumen/${docKey}`);
+                const currentTarget = this.pegawaiList.find(p => p.nip === targetNip);
+                if (!currentTarget) throw new Error('Pegawai sudah tidak tersedia.');
+                currentTarget.dokumen[docKey] = {
+                    ...oldDoc,
+                    namaFile: file.name,
+                    url: uploaded.url,
+                    storagePath: uploaded.storagePath,
+                    base64: ''
+                };
+                await this._savePegawaiToFS(JSON.parse(JSON.stringify(currentTarget)));
+                await this._deleteStoragePath(oldDoc.storagePath);
+                alert(type.toUpperCase()+" berhasil diunggah!");
+            } catch (error) {
+                const currentTarget = this.pegawaiList.find(p => p.nip === targetNip);
+                if (currentTarget) currentTarget.dokumen[docKey] = oldDoc;
+                if (uploaded?.storagePath) await this._deleteStoragePath(uploaded.storagePath);
+                alert('Gagal mengunggah dokumen: ' + error.message);
+            }
             event.target.value = '';
         },
 
         openPdfViewer(doc, type) {
-            if (!doc || !doc.base64) { alert("File belum diupload!"); return; }
+            if (!doc || (!doc.url && !doc.base64)) { alert("File belum diupload!"); return; }
             this.currentPdfDoc = doc;
             this.currentPdfType = type;
             this.showPdfViewer = true;
             setTimeout(() => lucide.createIcons(), 100);
         },
 
-        closePdfViewer() { this.showPdfViewer = false; this.currentPdfDoc = { namaFile:'', base64:'' }; },
+        closePdfViewer() { this.showPdfViewer = false; this.currentPdfDoc = { namaFile:'', url:'', base64:'' }; },
 
         prefillCutiForSelected() {
             if (this.selectedPegawai) this.newCutiForm.nip = this.selectedPegawai.nip;
         },
 
         getCountdownClass(days) {
-            if (days <= 0) return 'text-gray-400';
+            if (days === null || days === undefined || !Number.isFinite(days)) return 'text-gray-400';
+            if (days < 0) return 'text-red-700 font-extrabold';
             if (days <= 30) return 'text-red-600 font-extrabold';
             if (days <= 90) return 'text-orange-500';
             if (days <= 180) return 'text-yellow-600';
             return 'text-[#0B2341]';
+        },
+
+        formatCountdown(days, compact = false) {
+            if (days === null || days === undefined || !Number.isFinite(days)) return '-';
+            if (days < 0) return compact ? `Lewat ${Math.abs(days)}h` : `Terlambat ${Math.abs(days)} hari`;
+            return compact ? `${days}h` : `${days} hari lagi`;
         },
 
         getBadgeCuti(jenis) {
@@ -816,7 +984,12 @@ function sipandaApp() {
             const events = this.cutiList.map(c => ({
                 title: c.nama+' ('+c.jenisCuti+')',
                 start: c.tanggalMulai,
-                end: new Date(new Date(c.tanggalSelesai).getTime()+86400000).toISOString().split('T')[0],
+                end: (() => {
+                    const endDate = this._parseLocalDate(c.tanggalSelesai);
+                    if (!endDate) return c.tanggalSelesai;
+                    endDate.setDate(endDate.getDate() + 1);
+                    return this._formatLocalDate(endDate);
+                })(),
                 backgroundColor: colorMap[c.jenisCuti] || '#2E7D32',
                 borderColor: colorMap[c.jenisCuti] || '#2E7D32',
                 allDay: true
@@ -884,15 +1057,34 @@ function sipandaApp() {
             reader.onload = async (e) => {
                 try {
                     const json = JSON.parse(e.target.result);
+                    if (!Array.isArray(json.pegawai) || !Array.isArray(json.cuti)) throw new Error('Struktur backup tidak valid.');
+                    const nipSet = new Set();
+                    for (const p of json.pegawai) {
+                        if (!p || typeof p.nip !== 'string' || !/^\d{8,20}$/.test(p.nip) || typeof p.nama !== 'string' || nipSet.has(p.nip)) {
+                            throw new Error('Data pegawai dalam backup tidak valid atau memiliki NIP ganda.');
+                        }
+                        nipSet.add(p.nip);
+                    }
+                    const cutiIdSet = new Set();
+                    for (const c of json.cuti) {
+                        if (!c || typeof c.cutiId !== 'string' || typeof c.nip !== 'string' || !nipSet.has(c.nip) ||
+                            typeof c.tanggalMulai !== 'string' || typeof c.tanggalSelesai !== 'string' ||
+                            !this._parseLocalDate(c.tanggalMulai) || !this._parseLocalDate(c.tanggalSelesai) ||
+                            c.tanggalSelesai < c.tanggalMulai || cutiIdSet.has(c.cutiId)) {
+                            throw new Error('Data cuti dalam backup tidak valid.');
+                        }
+                        cutiIdSet.add(c.cutiId);
+                    }
                     if (!confirm("Ini akan menimpa data yang ada. Lanjutkan?")) return;
-                    if (json.pegawai) {
-                        for (const p of json.pegawai) await this._savePegawaiToFS(p);
-                    }
-                    if (json.cuti) {
-                        for (const c of json.cuti) await this._saveCutiToFS(c);
-                    }
-                    alert("✅ Database berhasil direstore!");
-                } catch(err) { alert("File JSON tidak valid!"); }
+                    const pegawaiIdsBackup = new Set(json.pegawai.map(p => p.nip));
+                    const cutiIdsBackup = new Set(json.cuti.map(c => c.cutiId));
+                    for (const c of this.cutiList.filter(c => !cutiIdsBackup.has(c.cutiId))) await this._deleteCutiFromFS(c.cutiId);
+                    for (const p of this.pegawaiList.filter(p => !pegawaiIdsBackup.has(p.nip))) await this._deletePegawaiFromFS(p.nip);
+                    for (const p of json.pegawai) await this._savePegawaiToFS(p);
+                    for (const c of json.cuti) await this._saveCutiToFS(c);
+                    alert("Database berhasil dipulihkan!");
+                } catch(err) { alert("Restore gagal: " + err.message); }
+                finally { event.target.value = ''; }
             };
             reader.readAsText(file);
         },
@@ -900,10 +1092,23 @@ function sipandaApp() {
         async clearAllFirestore() {
             if (!confirm("HAPUS SEMUA DATA? Ini tidak bisa di-undo!")) return;
             if (!confirm("Konfirmasi sekali lagi: hapus semua data Firestore?")) return;
-            const { db, doc, deleteDoc } = window._fb;
-            for (const p of [...this.pegawaiList]) await deleteDoc(doc(db, 'pegawai', p.nip));
-            for (const c of [...this.cutiList]) await deleteDoc(doc(db, 'cuti', c.cutiId));
-            alert("Semua data telah dihapus.");
+            try {
+                const pegawaiSnapshot = JSON.parse(JSON.stringify(this.pegawaiList));
+                const cutiSnapshot = JSON.parse(JSON.stringify(this.cutiList));
+                const storagePaths = pegawaiSnapshot.flatMap(p => [
+                    p.fotoStoragePath,
+                    p.dokumen?.skPangkat?.storagePath,
+                    p.dokumen?.skJabatan?.storagePath,
+                    p.dokumen?.skKgb?.storagePath,
+                    p.dokumen?.skp?.storagePath
+                ]).filter(Boolean);
+                for (const c of cutiSnapshot) await this._deleteCutiFromFS(c.cutiId);
+                for (const p of pegawaiSnapshot) await this._deletePegawaiFromFS(p.nip);
+                await Promise.all(storagePaths.map(path => this._deleteStoragePath(path)));
+                alert("Semua data telah dihapus.");
+            } catch (error) {
+                alert("Gagal menghapus semua data: " + error.message);
+            }
         },
 
         triggerReportExport(type) { alert("Export Laporan "+type+" — fitur PDF akan ditambahkan"); },
