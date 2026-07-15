@@ -39,20 +39,98 @@
 </div>
 
 <!-- LOGIN -->
-<div x-show="!isLoggedIn && !isLoading" class="fixed inset-0 z-50 flex items-center justify-center bg-[#0B2341] p-4" style="background-image:linear-gradient(rgba(11,35,65,0.95),rgba(18,59,99,0.95)),url('https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=1200')">
-<div class="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-8 max-w-md w-full border border-yellow-500/20 text-center">
-<div class="flex justify-center mb-4"><div class="w-20 h-20 bg-[#C9A227] rounded-full flex items-center justify-center shadow-lg border-2 border-white"><i data-lucide="shield" class="w-10 h-10 text-white"></i></div></div>
-<h1 class="text-3xl font-extrabold text-[#0B2341] tracking-tight">SIPANDA</h1>
-<p class="text-xs font-semibold text-[#123B63] mt-1 uppercase tracking-wide">Sistem Informasi Pengelolaan Data & Arsip Pegawai</p>
-<p class="text-[11px] text-slate-500 mt-0.5">Lapas Kelas IIA Banyuasin</p>
-<div x-show="loginError" class="mt-4 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg px-4 py-2" x-text="loginError"></div>
-<form @submit.prevent="handleLogin" class="mt-6 text-left space-y-4">
-<div><label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Email Admin</label><div class="relative"><span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><i data-lucide="user" class="w-5 h-5"></i></span><input type="email" x-model="loginForm.username" required class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#C9A227] text-sm" placeholder="admin@lapas.go.id"></div></div>
-<div><label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Password</label><div class="relative"><span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><i data-lucide="lock" class="w-5 h-5"></i></span><input type="password" x-model="loginForm.password" required class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#C9A227] text-sm" placeholder="Password Admin"></div></div>
-<div class="pt-2"><button type="submit" :disabled="loginLoading" class="w-full bg-[#0B2341] hover:bg-[#123B63] disabled:opacity-50 text-white py-3 rounded-lg font-bold text-sm transition duration-300 flex items-center justify-center space-x-2 shadow-lg"><i data-lucide="log-in" class="w-5 h-5"></i><span x-text="loginLoading?'Memuat...':'Masuk ke Sistem'"></span></button></div>
-</form>
-<div class="mt-6 text-[11px] text-slate-400">Hak Cipta © 2026 Kemenimipas RI. All Rights Reserved.</div>
-</div>
+<div x-show="!isLoggedIn && !isLoading" x-cloak class="login-fade-in fixed inset-0 z-50 flex items-center justify-center p-4 overflow-hidden" style="background:linear-gradient(160deg,#08162C 0%,#0B1F3A 40%,#0F2A4A 70%,#08162C 100%)">
+
+  <!-- Abstract gold lines -->
+  <div class="login-gold-line top-[15%] left-0" style="animation-delay:0s"></div>
+  <div class="login-gold-line top-[35%] left-0" style="width:40%;animation-delay:2s"></div>
+  <div class="login-gold-line top-[65%] left-0" style="width:50%;animation-delay:4s"></div>
+  <div class="login-gold-line top-[85%] left-0" style="width:35%;animation-delay:1s"></div>
+
+  <!-- Vignette -->
+  <div class="login-vignette"></div>
+
+  <!-- Watermark logo kiri -->
+  <div class="hidden lg:block fixed left-10 top-1/2 -translate-y-1/2 z-[2] opacity-[0.04] pointer-events-none select-none">
+    <img src="/assets/images/logo.png" alt="" class="w-[300px] h-auto">
+  </div>
+
+  <!-- Building photo kanan -->
+  <div class="hidden lg:block fixed right-0 top-0 h-full w-[45%] z-[2] pointer-events-none select-none overflow-hidden">
+    <div class="absolute inset-0" style="background:url('https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=1920') center/cover no-repeat;opacity:0.12;filter:blur(3px)"></div>
+  </div>
+
+  <!-- Login Card -->
+  <div class="login-slide-up relative z-10 w-full max-w-[460px]">
+    <div class="bg-white rounded-[22px] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.6),0_0_0_1px_rgba(255,255,255,0.08)] p-10 text-center backdrop-blur-sm">
+
+      <!-- Logo -->
+      <div class="flex justify-center mb-5">
+        <div class="w-[90px] h-[90px] rounded-2xl overflow-hidden shadow-lg ring-2 ring-[#D4A017]/30 login-float">
+          <img src="/assets/images/logo.png" alt="SIPANDA Logo" class="w-full h-full object-cover">
+        </div>
+      </div>
+
+      <!-- Title -->
+      <h1 class="text-[36px] font-extrabold tracking-tight text-[#0B1F3A] leading-none">SIPANDA</h1>
+      <p class="text-sm font-medium text-[#D4A017] mt-2 leading-snug">Sistem Informasi Pengelolaan Data &amp; Arsip Pegawai</p>
+      <p class="text-[13px] text-slate-400 mt-1.5 font-medium tracking-wide">Lapas Kelas IIA Banyuasin</p>
+
+      <!-- Error -->
+      <div x-show="loginError" class="mt-6 bg-red-50/90 border border-red-200 text-red-700 text-sm rounded-xl px-5 py-3.5 flex items-start gap-3 text-left shadow-sm">
+        <i data-lucide="alert-triangle" class="w-5 h-5 flex-shrink-0 mt-0.5 text-red-500"></i>
+        <span x-text="loginError" class="leading-relaxed"></span>
+      </div>
+
+      <!-- Form -->
+      <form @submit.prevent="handleLogin" class="mt-7 text-left space-y-5">
+
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Email Admin</label>
+          <div class="relative group">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 transition-colors duration-300 group-focus-within:text-[#D4A017]">
+              <i data-lucide="user" class="w-[18px] h-[18px]"></i>
+            </span>
+            <input type="email" x-model="loginForm.username" required autocomplete="email"
+              class="w-full pl-11 pr-4 py-3.5 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-800 placeholder:text-slate-400 outline-none transition-all duration-300 focus:border-[#D4A017] focus:ring-2 focus:ring-[#D4A017]/20 focus:shadow-[0_0_0_4px_rgba(212,160,23,0.08)] hover:border-slate-300"
+              placeholder="admin@lapas.go.id">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Password</label>
+          <div class="relative group">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 transition-colors duration-300 group-focus-within:text-[#D4A017]">
+              <i data-lucide="lock" class="w-[18px] h-[18px]"></i>
+            </span>
+            <input type="password" x-model="loginForm.password" required autocomplete="current-password"
+              class="w-full pl-11 pr-4 py-3.5 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-800 placeholder:text-slate-400 outline-none transition-all duration-300 focus:border-[#D4A017] focus:ring-2 focus:ring-[#D4A017]/20 focus:shadow-[0_0_0_4px_rgba(212,160,23,0.08)] hover:border-slate-300"
+              placeholder="Password Admin">
+          </div>
+        </div>
+
+        <div class="pt-1">
+          <button type="submit" :disabled="loginLoading"
+            class="group relative w-full h-14 overflow-hidden rounded-xl font-bold text-sm transition-all duration-500 flex items-center justify-center gap-3 shadow-lg disabled:opacity-60"
+            :class="loginLoading ? 'bg-slate-400 cursor-not-allowed' : 'bg-gradient-to-r from-[#0B1F3A] via-[#0F2A4A] to-[#0B1F3A] hover:from-[#D4A017] hover:via-[#C5960A] hover:to-[#D4A017] text-white hover:text-white hover:shadow-[0_8px_30px_rgba(212,160,23,0.35)]'">
+            <span x-show="!loginLoading" class="flex items-center gap-3">
+              Masuk ke Sistem
+              <i data-lucide="arrow-right" class="w-[18px] h-[18px] transition-transform duration-300 group-hover:translate-x-1"></i>
+            </span>
+            <span x-show="loginLoading" class="flex items-center gap-3">
+              <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+              Memuat...
+            </span>
+          </button>
+        </div>
+
+      </form>
+
+      <!-- Footer -->
+      <div class="mt-8 text-[12px] text-slate-400 font-medium">Hak Cipta &copy; 2026 Kemenimipas RI. All Rights Reserved.</div>
+
+    </div>
+  </div>
 </div>
 
 <!-- MAIN APP -->

@@ -26,3 +26,14 @@
 .toast-animate-in{animation:toast-in 0.3s cubic-bezier(.22,1,.36,1) forwards}
 .toast-animate-out{animation:toast-out 0.25s ease-in forwards}
 .toast-progress{position:absolute;bottom:0;left:0;height:3px;border-radius:0 0 12px 12px;transition:width linear}
+.login-fade-in{animation:loginFadeIn 1s cubic-bezier(.22,1,.36,1) forwards}
+@keyframes loginFadeIn{0%{opacity:0}to{opacity:1}}
+.login-slide-up{animation:loginSlideUp 0.8s cubic-bezier(.22,1,.36,1) forwards}
+@keyframes loginSlideUp{0%{opacity:0;transform:translateY(40px) scale(0.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.login-slide-up-delay{animation:loginSlideUp 0.8s cubic-bezier(.22,1,.36,1) 0.15s forwards;opacity:0}
+@keyframes goldShimmer{0%{transform:translateX(-100%)}to{transform:translateX(400%)}}
+.login-gold-line{position:absolute;height:1px;background:linear-gradient(90deg,transparent,rgba(212,160,23,0.6),transparent);width:60%;animation:goldShimmer 6s ease-in-out infinite}
+@keyframes floatSoft{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.login-float{animation:floatSoft 4s ease-in-out infinite}
+@keyframes vignette{0%{opacity:1}to{opacity:1}}
+.login-vignette{pointer-events:none;position:fixed;inset:0;background:radial-gradient(ellipse at center,transparent 50%,rgba(8,22,44,0.7) 100%);z-index:1}
