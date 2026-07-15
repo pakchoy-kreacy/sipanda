@@ -103,7 +103,7 @@ window._fb = {
 <button @click="activeMenu='pangkat'" :class="activeMenu==='pangkat'?'bg-[#C9A227] text-[#0B2341] font-bold':'hover:bg-white/5 text-slate-300'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm transition"><i data-lucide="award" class="w-5 h-5"></i><span>Kepangkatan</span></button>
 <button @click="activeMenu='cuti';setTimeout(()=>{renderCalendar()},200)" :class="activeMenu==='cuti'?'bg-[#C9A227] text-[#0B2341] font-bold':'hover:bg-white/5 text-slate-300'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm transition"><i data-lucide="calendar" class="w-5 h-5"></i><span>Cuti / Izin / DL</span></button>
 <button @click="activeMenu='laporan'" :class="activeMenu==='laporan'?'bg-[#C9A227] text-[#0B2341] font-bold':'hover:bg-white/5 text-slate-300'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm transition"><i data-lucide="file-text" class="w-5 h-5"></i><span>Laporan</span></button>
-<button @click="activeMenu='admin'" :class="activeMenu==='admin'?'bg-[#C9A227] text-[#0B2341] font-bold':'hover:bg-white/5 text-slate-300'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm transition"><i data-lucide="settings" class="w-5 h-5"></i><span>Admin</span></button>
+<button @click="activeMenu='admin'" x-show="isAdmin" :class="activeMenu==='admin'?'bg-[#C9A227] text-[#0B2341] font-bold':'hover:bg-white/5 text-slate-300'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm transition"><i data-lucide="settings" class="w-5 h-5"></i><span>Admin</span></button>
 </nav>
 <div class="p-4 border-t border-slate-800 bg-slate-950/40"><div class="flex items-center space-x-3"><img :src="sessionUser.foto||'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150'" class="w-10 h-10 rounded-full border border-[#C9A227] object-cover"><div class="flex-1 min-w-0"><p class="text-xs font-bold text-white truncate" x-text="sessionUser.nama"></p><p class="text-[10px] text-slate-400 capitalize truncate" x-text="sessionUser.email||'Admin'"></p></div><button @click="handleLogout" class="text-slate-400 hover:text-red-400 p-1"><i data-lucide="log-out" class="w-5 h-5"></i></button></div></div>
 </aside>
@@ -344,7 +344,7 @@ window._fb = {
 </div>
 
 <!-- ADMIN -->
-<div x-show="activeMenu==='admin'" class="space-y-6">
+<div x-show="activeMenu==='admin' && isAdmin" class="space-y-6">
 <h2 class="text-2xl font-extrabold text-[#0B2341]">Admin Console</h2>
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 <div class="bg-white rounded-3xl p-6 shadow-sm border"><h3 class="font-bold mb-2">Info Akun</h3><p class="text-xs text-slate-500" x-text="'Login sebagai: '+(sessionUser.email||'-')"></p><p class="text-xs text-slate-400 mt-1">Data tersimpan di Firestore Cloud (real-time)</p></div>
@@ -434,6 +434,9 @@ function sipandaApp() {
         currentPdfDoc: { namaFile: '', url: '', base64: '' },
         currentPdfType: '',
         sessionUser: { nama: 'Admin', email: '', foto: '' },
+        isAdmin: false,
+        _adminEmails: ['choiruddin2410@gmail.com'],
+        _recalcInterval: null,
         loginForm: { username: '', password: '' },
         newTodoText: '',
         newPegawaiForm: { nip: '', nama: '', golongan: 'II/a', jabatan: '', noHp: '', email: '', gender: 'Laki-laki', tglLahir: '1995-01-01', pendidikan: 'S1' },
@@ -453,24 +456,40 @@ function sipandaApp() {
         _cutiReady: false,
 
         async initApp() {
-            // Tunggu Firebase modul siap
-            await new Promise(resolve => {
-                const check = () => window._fb ? resolve() : setTimeout(check, 50);
+            await new Promise((resolve, reject) => {
+                let attempts = 0;
+                const check = () => {
+                    if (window._fb) return resolve();
+                    if (++attempts > 300) return reject(new Error('Firebase gagal dimuat.'));
+                    setTimeout(check, 50);
+                };
                 check();
+            }).catch(err => {
+                this.loadingMsg = 'Gagal menghubungkan server. Muat ulang halaman.';
+                this.isLoading = false;
+                return;
             });
+            if (!window._fb) return;
 
             const { auth, onAuthStateChanged } = window._fb;
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
                     this.sessionUser = { nama: user.displayName || 'Admin', email: user.email, foto: user.photoURL || '' };
+                    this.isAdmin = this._adminEmails.includes(user.email);
                     this.isLoggedIn = true;
                     this.loadingMsg = 'Memuat data pegawai...';
                     this.subscribeFirestore();
                     this.isLoading = false;
+                    this._recalcInterval = setInterval(() => {
+                        this.recalculateAllCountdowns();
+                        this.hitungUrgensiDanMasaBerlaku();
+                        this.updateStats();
+                    }, 3600000);
                     setTimeout(() => { this.initCharts(); lucide.createIcons(); }, 500);
                 } else {
                     this.isLoggedIn = false;
                     this.isLoading = false;
+                    if (this._recalcInterval) { clearInterval(this._recalcInterval); this._recalcInterval = null; }
                     setTimeout(() => lucide.createIcons(), 300);
                 }
             });
@@ -556,10 +575,13 @@ function sipandaApp() {
         async handleLogout() {
             if (!confirm("Keluar dari sistem?")) return;
             const { auth, signOut } = window._fb;
+            try {
+                await signOut(auth);
+            } catch(e) { console.error('Logout error:', e); }
             if (this._unsubPegawai) this._unsubPegawai();
             if (this._unsubCuti) this._unsubCuti();
+            if (this._recalcInterval) { clearInterval(this._recalcInterval); this._recalcInterval = null; }
             this._destroyCharts();
-            await signOut(auth);
         },
 
         // ── FIRESTORE WRITE HELPERS ──────────────────────────────
@@ -1046,7 +1068,7 @@ function sipandaApp() {
         exportDatabaseBackup() {
             const data = "data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify({ pegawai: this.pegawaiList, cuti: this.cutiList }));
             const a = document.createElement('a');
-            a.href = data; a.download = "SIPANDA_BACKUP_"+new Date().toISOString().split('T')[0]+".json";
+            a.href = data; a.download = "SIPANDA_BACKUP_"+this._todayString()+".json";
             document.body.appendChild(a); a.click(); a.remove();
         },
 
@@ -1090,6 +1112,7 @@ function sipandaApp() {
         },
 
         async clearAllFirestore() {
+            if (!this.isAdmin) { alert("Hanya admin yang bisa menghapus semua data."); return; }
             if (!confirm("HAPUS SEMUA DATA? Ini tidak bisa di-undo!")) return;
             if (!confirm("Konfirmasi sekali lagi: hapus semua data Firestore?")) return;
             try {
