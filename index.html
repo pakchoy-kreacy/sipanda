@@ -17,7 +17,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, doc, getDocs, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCoLvKceuAmNBMELnt-FdVha-EMmlvm0jU",
@@ -31,14 +30,12 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const storage = getStorage(app);
 
 // Expose ke Alpine via window
 window._fb = {
-  auth, db, storage,
+  auth, db,
   signInWithEmailAndPassword, signOut, onAuthStateChanged,
-  collection, doc, getDocs, setDoc, deleteDoc, onSnapshot,
-  ref, uploadBytes, getDownloadURL, deleteObject
+  collection, doc, getDocs, setDoc, deleteDoc, onSnapshot
 };
 </script>
 <style>
@@ -406,8 +403,8 @@ window._fb = {
 <!-- PDF VIEWER -->
 <div x-show="showPdfViewer" class="pdf-viewer-overlay" x-cloak @click.self="closePdfViewer()">
 <div class="pdf-viewer-container">
-<div class="pdf-viewer-header"><div><h3 class="font-bold text-sm" x-text="currentPdfDoc.namaFile"></h3><p class="text-[10px] text-slate-300" x-text="currentPdfType"></p></div><div class="flex items-center gap-2"><a :href="currentPdfDoc.url||currentPdfDoc.base64||'#'" :download="currentPdfDoc.namaFile||'dokumen.pdf'" target="_blank" rel="noopener" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center"><i data-lucide="download" class="w-4 h-4 mr-1"></i> Download</a><button type="button" aria-label="Tutup PDF" @click="closePdfViewer()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button></div></div>
-<div class="pdf-viewer-body"><iframe title="Pratinjau dokumen PDF" :src="currentPdfDoc.url||currentPdfDoc.base64"></iframe></div>
+<div class="pdf-viewer-header"><div><h3 class="font-bold text-sm" x-text="currentPdfDoc.namaFile"></h3><p class="text-[10px] text-slate-300" x-text="currentPdfType"></p></div><div class="flex items-center gap-2"><a :href="currentPdfDoc.base64||currentPdfDoc.url||'#'" :download="currentPdfDoc.namaFile||'dokumen.pdf'" target="_blank" rel="noopener" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center"><i data-lucide="download" class="w-4 h-4 mr-1"></i> Download</a><button type="button" aria-label="Tutup PDF" @click="closePdfViewer()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button></div></div>
+<div class="pdf-viewer-body"><iframe title="Pratinjau dokumen PDF" :src="currentPdfDoc.base64||currentPdfDoc.url"></iframe></div>
 </div>
 </div>
 
@@ -631,47 +628,20 @@ function sipandaApp() {
             }
         },
 
-        async _uploadFile(file, folder) {
-            const { storage, ref, uploadBytes, getDownloadURL } = window._fb;
-            const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-            const storagePath = `${folder}/${Date.now()}-${safeName}`;
-            const storageRef = ref(storage, storagePath);
-            try {
-                await uploadBytes(storageRef, file, { contentType: file.type });
-                return { url: await getDownloadURL(storageRef), storagePath };
-            } catch (error) {
-                const message = error?.code === 'storage/bucket-not-found'
-                    ? 'Firebase Storage belum dibuat untuk proyek ini.'
-                    : error.message;
-                throw new Error(message);
-            }
-        },
-
-        async _deleteStoragePath(storagePath) {
-            if (!storagePath) return;
-            const { storage, ref, deleteObject } = window._fb;
-            try {
-                await deleteObject(ref(storage, storagePath));
-            } catch (error) {
-                if (error?.code !== 'storage/object-not-found') console.warn('Gagal menghapus file lama:', error);
-            }
-        },
-
         // ── DATA OPS ──────────────────────────────────────────────
         migrateData() {
             this.pegawaiList = this.pegawaiList.map(p => {
                 if (!p.dokumen) p.dokumen = {};
-                if (!p.dokumen.skPangkat) p.dokumen.skPangkat = { namaFile:"", url:"", storagePath:"" };
-                if (!p.dokumen.skJabatan) p.dokumen.skJabatan = { nomor:"", namaFile:"", url:"", storagePath:"" };
-                if (!p.dokumen.skKgb) p.dokumen.skKgb = { nomor:"", namaFile:"", url:"", storagePath:"" };
-                if (!p.dokumen.skp) p.dokumen.skp = { namaFile:"", url:"", storagePath:"" };
+                if (!p.dokumen.skPangkat) p.dokumen.skPangkat = { namaFile:"", base64:"" };
+                if (!p.dokumen.skJabatan) p.dokumen.skJabatan = { nomor:"", namaFile:"", base64:"" };
+                if (!p.dokumen.skKgb) p.dokumen.skKgb = { nomor:"", namaFile:"", base64:"" };
+                if (!p.dokumen.skp) p.dokumen.skp = { namaFile:"", base64:"" };
                 if (!p.dokumen.skpKgb) p.dokumen.skpKgb = { nilai:80, predikat:"Sesuai Ekspektasi", tahun:2025 };
                 if (!p.gender) p.gender = "Laki-laki";
                 if (!p.pendidikan) p.pendidikan = "S1";
                 if (!p.namaPangkat) p.namaPangkat = "";
                 if (!p.pangkatBerikutnya) p.pangkatBerikutnya = "";
                 if (!p.tmtJabatan) p.tmtJabatan = "";
-                if (!p.fotoStoragePath) p.fotoStoragePath = "";
                 if (!Number.isFinite(p.pangkatCountdownDays)) p.pangkatCountdownDays = null;
                 if (!Number.isFinite(p.kgbCountdownDays)) p.kgbCountdownDays = null;
                 if (!Number.isFinite(p.pensiunCountdown)) p.pensiunCountdown = null;
@@ -797,12 +767,12 @@ function sipandaApp() {
                 pensiunCountdown: this._calculateRetirement(this.newPegawaiForm.tglLahir), progressBerkas: 0,
                 tglPangkatTerakhir: "", tglPangkatBerikutnya: "",
                 tglKgbTerakhir: "", tglKgbBerikutnya: "",
-                foto: "", fotoStoragePath: "",
+                foto: "",
                 dokumen: {
-                    skPangkat: { namaFile:"", url:"", storagePath:"" },
-                    skJabatan: { nomor:"", namaFile:"", url:"", storagePath:"" },
-                    skKgb: { nomor:"", namaFile:"", url:"", storagePath:"" },
-                    skp: { namaFile:"", url:"", storagePath:"" },
+                    skPangkat: { namaFile:"", base64:"" },
+                    skJabatan: { nomor:"", namaFile:"", base64:"" },
+                    skKgb: { nomor:"", namaFile:"", base64:"" },
+                    skp: { namaFile:"", base64:"" },
                     skpKgb: { nilai:80, predikat:"Sesuai Ekspektasi", tahun:new Date().getFullYear() }
                 }
             };
@@ -830,18 +800,9 @@ function sipandaApp() {
         async hapusPegawai(nip) {
             if (!confirm("Hapus pegawai ini? Data cuti juga akan dihapus.")) return;
             try {
-                const pegawai = this.pegawaiList.find(p => p.nip === nip);
-                const storagePaths = [
-                    pegawai?.fotoStoragePath,
-                    pegawai?.dokumen?.skPangkat?.storagePath,
-                    pegawai?.dokumen?.skJabatan?.storagePath,
-                    pegawai?.dokumen?.skKgb?.storagePath,
-                    pegawai?.dokumen?.skp?.storagePath
-                ].filter(Boolean);
                 const cutiTerkait = this.cutiList.filter(c => c.nip === nip);
                 for (const c of cutiTerkait) await this._deleteCutiFromFS(c.cutiId);
                 await this._deletePegawaiFromFS(nip);
-                await Promise.all(storagePaths.map(path => this._deleteStoragePath(path)));
                 this.activeMenu = 'pegawai';
                 this.selectedPegawai = null;
             } catch (error) {
@@ -893,39 +854,30 @@ function sipandaApp() {
             }
         },
 
-        async uploadFoto(event) {
+        uploadFoto(event) {
             const file = event.target.files[0];
             if (!file) return;
             if (file.size > 2*1024*1024) { alert("Max 2MB!"); event.target.value = ''; return; }
             if (!file.type.startsWith('image/')) { alert("Harus gambar!"); event.target.value = ''; return; }
-            const targetNip = this.selectedPegawai?.nip;
-            const target = this.pegawaiList.find(p => p.nip === targetNip);
+            const target = this.selectedPegawai;
             if (!target) { alert('Pegawai tidak ditemukan.'); event.target.value = ''; return; }
-            const oldUrl = target.foto;
-            const oldPath = target.fotoStoragePath;
-            let uploaded = null;
-            try {
-                uploaded = await this._uploadFile(file, `pegawai/${targetNip}/foto`);
-                const currentTarget = this.pegawaiList.find(p => p.nip === targetNip);
-                if (!currentTarget) throw new Error('Pegawai sudah tidak tersedia.');
-                currentTarget.foto = uploaded.url;
-                currentTarget.fotoStoragePath = uploaded.storagePath;
-                await this._savePegawaiToFS(JSON.parse(JSON.stringify(currentTarget)));
-                await this._deleteStoragePath(oldPath);
-                setTimeout(() => lucide.createIcons(), 200);
-            } catch (error) {
-                const currentTarget = this.pegawaiList.find(p => p.nip === targetNip);
-                if (currentTarget) {
-                    currentTarget.foto = oldUrl;
-                    currentTarget.fotoStoragePath = oldPath;
+            const oldFoto = target.foto;
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                target.foto = e.target.result;
+                try {
+                    await this._savePegawaiToFS(JSON.parse(JSON.stringify(target)));
+                    setTimeout(() => lucide.createIcons(), 200);
+                } catch (error) {
+                    target.foto = oldFoto;
+                    alert('Gagal menyimpan foto: ' + error.message);
                 }
-                if (uploaded?.storagePath) await this._deleteStoragePath(uploaded.storagePath);
-                alert('Gagal mengunggah foto: ' + error.message);
-            }
+            };
+            reader.readAsDataURL(file);
             event.target.value = '';
         },
 
-        async handleDocUpload(event, type) {
+        handleDocUpload(event, type) {
             const file = event.target.files[0];
             if (!file) return;
             if (file.type !== "application/pdf") { alert("Harus PDF!"); event.target.value = ''; return; }
@@ -933,31 +885,21 @@ function sipandaApp() {
             const docMap = { skPangkat: 'skPangkat', skJabatan: 'skJabatan', skKgb: 'skKgb', skp: 'skp' };
             const docKey = docMap[type];
             if (!docKey) { alert('Jenis dokumen tidak valid.'); return; }
-            const targetNip = this.selectedPegawai?.nip;
-            const target = this.pegawaiList.find(p => p.nip === targetNip);
+            const target = this.selectedPegawai;
             if (!target) { alert('Pegawai tidak ditemukan.'); event.target.value = ''; return; }
-            const oldDoc = { ...(target.dokumen[docKey] || {}) };
-            let uploaded = null;
-            try {
-                uploaded = await this._uploadFile(file, `pegawai/${targetNip}/dokumen/${docKey}`);
-                const currentTarget = this.pegawaiList.find(p => p.nip === targetNip);
-                if (!currentTarget) throw new Error('Pegawai sudah tidak tersedia.');
-                currentTarget.dokumen[docKey] = {
-                    ...oldDoc,
-                    namaFile: file.name,
-                    url: uploaded.url,
-                    storagePath: uploaded.storagePath,
-                    base64: ''
-                };
-                await this._savePegawaiToFS(JSON.parse(JSON.stringify(currentTarget)));
-                await this._deleteStoragePath(oldDoc.storagePath);
-                alert(type.toUpperCase()+" berhasil diunggah!");
-            } catch (error) {
-                const currentTarget = this.pegawaiList.find(p => p.nip === targetNip);
-                if (currentTarget) currentTarget.dokumen[docKey] = oldDoc;
-                if (uploaded?.storagePath) await this._deleteStoragePath(uploaded.storagePath);
-                alert('Gagal mengunggah dokumen: ' + error.message);
-            }
+            const oldDoc = target.dokumen[docKey] ? { ...target.dokumen[docKey] } : {};
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                target.dokumen[docKey] = { ...oldDoc, namaFile: file.name, base64: e.target.result };
+                try {
+                    await this._savePegawaiToFS(JSON.parse(JSON.stringify(target)));
+                    alert(type.toUpperCase()+" berhasil diunggah!");
+                } catch (error) {
+                    target.dokumen[docKey] = oldDoc;
+                    alert('Gagal menyimpan dokumen: ' + error.message);
+                }
+            };
+            reader.readAsDataURL(file);
             event.target.value = '';
         },
 
@@ -1118,16 +1060,8 @@ function sipandaApp() {
             try {
                 const pegawaiSnapshot = JSON.parse(JSON.stringify(this.pegawaiList));
                 const cutiSnapshot = JSON.parse(JSON.stringify(this.cutiList));
-                const storagePaths = pegawaiSnapshot.flatMap(p => [
-                    p.fotoStoragePath,
-                    p.dokumen?.skPangkat?.storagePath,
-                    p.dokumen?.skJabatan?.storagePath,
-                    p.dokumen?.skKgb?.storagePath,
-                    p.dokumen?.skp?.storagePath
-                ]).filter(Boolean);
                 for (const c of cutiSnapshot) await this._deleteCutiFromFS(c.cutiId);
                 for (const p of pegawaiSnapshot) await this._deletePegawaiFromFS(p.nip);
-                await Promise.all(storagePaths.map(path => this._deleteStoragePath(path)));
                 alert("Semua data telah dihapus.");
             } catch (error) {
                 alert("Gagal menghapus semua data: " + error.message);
