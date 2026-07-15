@@ -43,22 +43,44 @@ create table if not exists cuti (
   created_at timestamptz default now()
 );
 
--- 3. ENABLE REALTIME (wajib untuk subscription)
+-- 3. ENABLE REALTIME
 alter publication supabase_realtime add table pegawai;
 alter publication supabase_realtime add table cuti;
 
--- 4. ROW LEVEL SECURITY (amatankan data)
+-- 4. ROW LEVEL SECURITY
 alter table pegawai enable row level security;
 alter table cuti enable row level security;
 
--- izinkan semua user terautentikasi baca/tulis
--- ganti 'choiruddin2410@gmail.com' dengan email admin kamu
-create policy "pegawai_read_all" on pegawai for select using (auth.role() = 'authenticated');
-create policy "pegawai_write_admin" on pegawai for insert using (auth.email() = 'choiruddin2410@gmail.com');
-create policy "pegawai_write_admin" on pegawai for update using (auth.email() = 'choiruddin2410@gmail.com');
-create policy "pegawai_write_admin" on pegawai for delete using (auth.email() = 'choiruddin2410@gmail.com');
+-- PEGAWAI
+drop policy if exists "pegawai_select" on pegawai;
+create policy "pegawai_select" on pegawai
+  for select using (auth.role() = 'authenticated');
 
-create policy "cuti_read_all" on cuti for select using (auth.role() = 'authenticated');
-create policy "cuti_write_admin" on cuti for insert using (auth.email() = 'choiruddin2410@gmail.com');
-create policy "cuti_write_admin" on cuti for update using (auth.email() = 'choiruddin2410@gmail.com');
-create policy "cuti_write_admin" on cuti for delete using (auth.email() = 'choiruddin2410@gmail.com');
+drop policy if exists "pegawai_insert" on pegawai;
+create policy "pegawai_insert" on pegawai
+  for insert with check (auth.email() = 'choiruddin2410@gmail.com');
+
+drop policy if exists "pegawai_update" on pegawai;
+create policy "pegawai_update" on pegawai
+  for update using (auth.email() = 'choiruddin2410@gmail.com');
+
+drop policy if exists "pegawai_delete" on pegawai;
+create policy "pegawai_delete" on pegawai
+  for delete using (auth.email() = 'choiruddin2410@gmail.com');
+
+-- CUTI
+drop policy if exists "cuti_select" on cuti;
+create policy "cuti_select" on cuti
+  for select using (auth.role() = 'authenticated');
+
+drop policy if exists "cuti_insert" on cuti;
+create policy "cuti_insert" on cuti
+  for insert with check (auth.email() = 'choiruddin2410@gmail.com');
+
+drop policy if exists "cuti_update" on cuti;
+create policy "cuti_update" on cuti
+  for update using (auth.email() = 'choiruddin2410@gmail.com');
+
+drop policy if exists "cuti_delete" on cuti;
+create policy "cuti_delete" on cuti
+  for delete using (auth.email() = 'choiruddin2410@gmail.com');
