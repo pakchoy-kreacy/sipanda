@@ -56,8 +56,18 @@ window.Sipanda.ui = {
         _showNextToast() {
             if (!this.toastQueue || !this.toastQueue.length) { this.toastCurrent = null; return; }
             this.toastCurrent = this.toastQueue.shift();
-            const duration = this.toastCurrent.duration;
+            this.toastProgress = 100;
+            if (this._progressTimer) clearInterval(this._progressTimer);
             if (this._toastTimer) clearTimeout(this._toastTimer);
-            this._toastTimer = setTimeout(() => this._showNextToast(), duration);
+            const duration = this.toastCurrent.duration || 3500;
+            const start = Date.now();
+            this._progressTimer = setInterval(() => {
+                const elapsed = Date.now() - start;
+                this.toastProgress = Math.max(0, 100 - (elapsed / duration) * 100);
+            }, 30);
+            this._toastTimer = setTimeout(() => {
+                if (this._progressTimer) clearInterval(this._progressTimer);
+                this._showNextToast();
+            }, duration);
         },
 };

@@ -41,5 +41,6 @@ window.Sipanda.createState = function () {
         _cutiReady: false,
         toastQueue: [],
         toastCurrent: null,
+        toastProgress: 100,
     };
 };
