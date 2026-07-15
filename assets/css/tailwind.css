@@ -42,7 +42,7 @@
 .login-building{position:fixed;right:0;top:0;height:100%;width:50%;z-index:1;pointer-events:none;overflow:hidden}
 .login-building::before{content:'';position:absolute;inset:0;background:url('/assets/images/login-bg.jpg') center/cover no-repeat;opacity:0.18;filter:blur(2px)}
 .login-building::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(8,22,44,0.95) 0%,rgba(11,31,58,0.7) 40%,rgba(11,31,58,0.2) 70%,transparent 100%)}
-.login-input{height:58px;border-radius:14px;background:#FAFAFA;border:1.5px solid #E2E8F0;padding-left:48px;padding-right:18px;font-size:15px;font-weight:500;color:#1E293B;outline:none;transition:all 0.25s ease;width:100%}
+.login-input{height:50px;border-radius:12px;background:#FAFAFA;border:1.5px solid #E2E8F0;padding-left:42px;padding-right:16px;font-size:14px;font-weight:500;color:#1E293B;outline:none;transition:all 0.25s ease;width:100%}
 .login-input::placeholder{color:#94A3B8;font-weight:400}
 .login-input:hover{border-color:#CBD5E1;background:#F8FAFC}
 .login-input:focus{border-color:#D4A017;background:#FFFFFF;box-shadow:0 0 0 4px rgba(212,160,23,0.1),0 1px 3px rgba(0,0,0,0.04)}
