@@ -1,4 +1,9 @@
 {
   "version": 2,
-  "public": true
+  "public": true,
+  "functions": {
+    "api/config.js": {
+      "runtime": "nodejs@18.x"
+    }
+  }
 }

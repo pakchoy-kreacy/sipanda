@@ -16,9 +16,12 @@
 <script type="module">
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
+const configResp = await fetch('/api/config');
+const config = await configResp.json();
+
 const supabase = createClient(
-  "https://YOUR_PROJECT.supabase.co",
-  "YOUR_ANON_KEY"
+  config.supabaseUrl,
+  config.supabaseAnonKey
 );
 
 window._supabase = supabase;
