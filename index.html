@@ -43,68 +43,93 @@
      x-transition:enter="transition ease-out duration-700"
      x-transition:enter-start="opacity-0"
      x-transition:enter-end="opacity-100"
-     class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-hidden"
-     style="background:linear-gradient(135deg,#08162C 0%,#0B1F3A 50%,#0D2847 100%)">
+     class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-hidden login-bg-animated"
+     style="background:linear-gradient(135deg,#08162C 0%,#0B1F3A 45%,#0D2847 100%)">
+
+  <!-- Vignette overlay -->
+  <div class="fixed inset-0 z-[1] pointer-events-none" style="background:radial-gradient(ellipse at center,transparent 50%,rgba(8,22,44,0.55) 100%)"></div>
 
   <!-- Gold corner accents -->
   <div class="login-gold-corner login-gold-corner-tl"></div>
   <div class="login-gold-corner login-gold-corner-br"></div>
 
+  <!-- Vertical gold line on left -->
+  <div class="fixed left-16 top-0 bottom-0 z-[2] pointer-events-none" style="width:1px;background:linear-gradient(180deg,transparent 10%,rgba(212,160,23,0.18) 25%,rgba(212,160,23,0.35) 50%,rgba(212,160,23,0.18) 75%,transparent 90%)"></div>
+
+  <!-- Subtle gold glow left -->
+  <div class="fixed left-0 top-1/2 -translate-y-1/2 z-[2] pointer-events-none" style="width:360px;height:360px;border-radius:50%;background:radial-gradient(circle,rgba(212,160,23,0.04) 0%,transparent 70%)"></div>
+
   <!-- Gold glow behind card -->
   <div class="login-glow" style="top:50%;left:50%;transform:translate(-50%,-50%)"></div>
 
-  <!-- Building photo layer -->
+  <!-- Building photo layer with Ken Burns -->
   <div class="fixed right-0 top-0 h-full w-1/2 z-[1] overflow-hidden pointer-events-none">
-    <div class="absolute inset-0 bg-cover bg-center" style="background-image:url('/assets/images/login-bg.jpg');opacity:0.15;filter:blur(2px)"></div>
+    <div class="absolute inset-0 bg-cover bg-center login-bg-kenburns" style="background-image:url('/assets/images/login-bg.jpg');opacity:0.16"></div>
     <div class="absolute inset-0" style="background:linear-gradient(90deg,rgba(8,22,44,0.95) 0%,rgba(11,31,58,0.7) 40%,rgba(11,31,58,0.2) 70%,transparent 100%)"></div>
+  </div>
+
+  <!-- Digital Clock -->
+  <div class="login-clock" x-data="{ d: '', t: '' }" x-init="let u=()=>{let n=new Date();d=n.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});t=n.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})+' WIB'};u();setInterval(u,1000)">
+    <div class="login-clock-date" x-text="d"></div>
+    <div class="login-clock-time" x-text="t"></div>
   </div>
 
   <!-- Login Card -->
   <div class="relative z-10 w-full"
-       style="max-width:380px"
-       x-transition:enter="transition ease-out duration-500 delay-150"
-       x-transition:enter-start="opacity-0 translate-y-6 scale-[0.97]"
+       style="max-width:480px"
+       x-transition:enter="transition ease-out duration-600 delay-150"
+       x-transition:enter-start="opacity-0 translate-y-8 scale-[0.96]"
        x-transition:enter-end="opacity-100 translate-y-0 scale-100">
-    <div class="relative rounded-[20px] border"
-         style="background:rgba(255,255,255,0.94);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-color:rgba(212,160,23,0.15);box-shadow:0 20px 60px rgba(0,0,0,0.18)">
+    <div class="relative rounded-[24px] border"
+         style="background:rgba(255,255,255,0.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-color:rgba(212,160,23,0.18);box-shadow:0 24px 80px rgba(0,0,0,0.15),0 4px 20px rgba(0,0,0,0.06)">
 
-      <div class="px-8 py-7 text-center">
+      <div class="px-10 py-9 text-center">
 
         <!-- Logo -->
-        <div class="flex justify-center mb-4">
-          <div class="w-[72px] h-[72px] rounded-2xl overflow-hidden shadow-[0_6px_20px_rgba(0,0,0,0.1)] ring-1 ring-[#D4A017]/20">
+        <div class="flex justify-center mb-5">
+          <div class="login-logo-float w-[96px] h-[96px] rounded-2xl overflow-hidden shadow-[0_8px_28px_rgba(0,0,0,0.12)] ring-1 ring-[#D4A017]/20 transition-transform duration-300 hover:scale-[1.03]">
             <img src="/assets/images/logo.png" alt="SIPANDA Logo" class="w-full h-full object-cover">
           </div>
         </div>
 
+        <!-- Greeting -->
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-[.12em] mb-1.5">
+          <span x-text="new Date().getHours() < 12 ? 'Selamat Pagi' : new Date().getHours() < 15 ? 'Selamat Siang' : new Date().getHours() < 18 ? 'Selamat Sore' : 'Selamat Malam'"></span>
+          <span class="mx-2 opacity-30">—</span>
+          <span>Portal Kepegawaian</span>
+        </p>
+
         <!-- Title -->
-        <h1 class="text-[28px] font-extrabold tracking-tight text-[#0B1F3A] leading-none">SIPANDA</h1>
-        <p class="text-xs font-medium text-slate-500 mt-1.5 leading-snug">Sistem Informasi Pengelolaan Data &amp; Arsip Pegawai</p>
-        <p class="text-[12px] text-slate-400 mt-0.5 font-medium">Lapas Kelas IIA Banyuasin</p>
+        <h1 class="text-[30px] font-extrabold tracking-tight text-[#0B1F3A] leading-none">SIPANDA</h1>
+        <p class="text-[12.5px] font-medium text-slate-500 mt-2 leading-snug max-w-xs mx-auto">Sistem Informasi Pengelolaan Data &amp; Arsip Pegawai</p>
+        <p class="text-[12px] text-slate-400 mt-1 font-medium">Lapas Kelas IIA Banyuasin</p>
+
+        <!-- Divider -->
+        <div class="w-10 h-[2.5px] bg-[#D4A017]/40 rounded-full mx-auto mt-5 mb-5"></div>
 
         <!-- Error -->
         <div x-show="loginError"
-             class="mt-4 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl px-3.5 py-2.5 flex items-start gap-2.5 text-left shadow-sm">
+             class="bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl px-4 py-3 flex items-start gap-2.5 text-left shadow-sm">
           <i data-lucide="alert-triangle" class="w-4 h-4 flex-shrink-0 mt-0.5 text-rose-500"></i>
           <span x-text="loginError" class="leading-relaxed"></span>
         </div>
 
         <!-- Form -->
-        <form @submit.prevent="handleLogin" class="mt-5 text-left space-y-3">
+        <form @submit.prevent="handleLogin" class="text-left space-y-4" :class="loginError ? 'mt-4' : 'mt-5'">
 
           <div>
-            <label class="block text-[11.5px] font-semibold text-slate-700 mb-0.5">Email Admin</label>
+            <label class="block text-[12px] font-semibold text-slate-700 mb-1">Email Admin</label>
             <div class="login-input-wrapper relative">
-              <i data-lucide="user" class="login-input-icon w-[15px] h-[15px]"></i>
+              <i data-lucide="user" class="login-input-icon"></i>
               <input type="email" x-model="loginForm.username" required autocomplete="email"
                      class="login-input" placeholder="admin@lapas.go.id">
             </div>
           </div>
 
           <div>
-            <label class="block text-[11.5px] font-semibold text-slate-700 mb-0.5">Password</label>
+            <label class="block text-[12px] font-semibold text-slate-700 mb-1">Password</label>
             <div class="login-input-wrapper relative">
-              <i data-lucide="lock" class="login-input-icon w-[15px] h-[15px]"></i>
+              <i data-lucide="lock" class="login-input-icon"></i>
               <input type="password" x-model="loginForm.password" required autocomplete="current-password"
                      class="login-input" placeholder="Password Admin">
             </div>
@@ -112,22 +137,24 @@
 
           <div>
             <button type="submit" :disabled="loginLoading"
-                    class="group relative w-full h-[48px] rounded-xl font-bold text-[13px] tracking-wide transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-60"
-                    :class="loginLoading ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-gradient-to-r from-[#0B1F3A] to-[#0D2847] text-white hover:from-[#D4A017] hover:to-[#C5960A] hover:shadow-[0_6px_24px_rgba(212,160,23,0.3)] active:scale-[0.97]'">
-              <span x-show="!loginLoading" class="flex items-center gap-2">
+                    class="group relative w-full h-[56px] rounded-[14px] font-bold text-[14px] tracking-wide transition-all duration-300 flex items-center justify-center gap-2.5 disabled:opacity-60 overflow-hidden"
+                    :class="loginLoading ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-gradient-to-r from-[#0B1F3A] to-[#0D2847] text-white hover:from-[#D4A017] hover:to-[#C5960A] hover:shadow-[0_8px_28px_rgba(212,160,23,0.3)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]'"
+                    @click="$nextTick(()=>{let e=$event.currentTarget.firstElementChild;if(e&&e.classList.contains('login-ripple-effect')){let r=document.createElement('span'),rct=e.getBoundingClientRect(),s=Math.max(rct.width,rct.height);r.style.cssText='width:'+s+'px;height:'+s+'px;left:'+($event.clientX-rct.left-s/2)+'px;top:'+($event.clientY-rct.top-s/2)+'px';e.appendChild(r);setTimeout(()=>r.remove(),700)}})">
+              <div class="login-ripple-effect"></div>
+              <span x-show="!loginLoading" class="flex items-center gap-2.5">
                 Masuk ke Sistem
-                <i data-lucide="arrow-right" class="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1"></i>
+                <i data-lucide="arrow-right" class="w-4 h-4 transition-all duration-300 group-hover:translate-x-[3px]"></i>
               </span>
-              <span x-show="loginLoading" class="flex items-center gap-2">
-                <svg class="animate-spin h-3.5 w-3.5 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                Memuat...
+              <span x-show="loginLoading" class="flex items-center gap-2.5">
+                <svg class="animate-spin h-4 w-4 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                Memverifikasi akun...
               </span>
             </button>
           </div>
 
         </form>
 
-        <div class="mt-5 text-[11px] text-slate-400 font-medium">Hak Cipta &copy; 2026 Kemenimipas RI. All Rights Reserved.</div>
+        <div class="mt-6 text-[11px] text-slate-400 font-medium">Hak Cipta &copy; 2026 Kemenimipas RI. All Rights Reserved.</div>
 
       </div>
     </div>
@@ -219,8 +246,8 @@
   <div class="si-card-body">
     <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-5">
       <div class="si-input-icon-wrapper md:col-span-2"><i data-lucide="search" class="si-input-icon w-4 h-4"></i><input type="text" x-model="pegawaiSearch" class="si-input si-input-sm" placeholder="Cari nama/NIP/jabatan..."></div>
-      <select x-model="filterGolongan" class="si-select si-input-sm" style="height:42px;font-size:13px;padding:0 14px;background-position:right 12px center"><option value="">Semua Golongan</option><option value="II/a">II/a</option><option value="II/b">II/b</option><option value="II/c">II/c</option><option value="II/d">II/d</option><option value="III/a">III/a</option><option value="III/b">III/b</option><option value="III/c">III/c</option><option value="III/d">III/d</option><option value="IV/a">IV/a</option><option value="IV/b">IV/b</option><option value="IV/c">IV/c</option><option value="IV/d">IV/d</option><option value="IV/e">IV/e</option></select>
-      <select x-model="filterUrgensi" class="si-select si-input-sm" style="height:42px;font-size:13px;padding:0 14px;background-position:right 12px center"><option value="">Semua</option><option value="red">Mendesak</option><option value="orange">Perhatian</option><option value="yellow">Persiapan</option><option value="green">Aman</option></select>
+      <select x-model="filterGolongan" class="si-select"><option value="">Semua Golongan</option><option value="II/a">II/a</option><option value="II/b">II/b</option><option value="II/c">II/c</option><option value="II/d">II/d</option><option value="III/a">III/a</option><option value="III/b">III/b</option><option value="III/c">III/c</option><option value="III/d">III/d</option><option value="IV/a">IV/a</option><option value="IV/b">IV/b</option><option value="IV/c">IV/c</option><option value="IV/d">IV/d</option><option value="IV/e">IV/e</option></select>
+      <select x-model="filterUrgensi" class="si-select"><option value="">Semua</option><option value="red">Mendesak</option><option value="orange">Perhatian</option><option value="yellow">Persiapan</option><option value="green">Aman</option></select>
     </div>
     <div class="si-table-wrap"><table class="si-table"><thead><tr><th>Foto</th><th>NIP &amp; Nama</th><th>Golongan</th><th>Pangkat</th><th>KGB</th><th>Berkas</th><th style="text-align:center">Aksi</th></tr></thead><tbody><template x-for="p in filteredPegawaiList" :key="p.nip"><tr><td><img :src="p.foto||'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150'" :alt="'Foto '+p.nama" class="w-8 h-8 rounded-full object-cover" style="width:32px;height:32px"></td><td><span class="font-semibold text-slate-800" x-text="p.nama"></span><span class="block text-[11px] text-slate-400" x-text="p.nip"></span></td><td><span class="si-badge si-badge-navy" x-text="p.golongan"></span></td><td><span class="font-semibold" :class="getCountdownClass(p.pangkatCountdownDays)" x-text="formatCountdown(p.pangkatCountdownDays,true)"></span></td><td><span class="font-semibold" :class="getCountdownClass(p.kgbCountdownDays)" x-text="formatCountdown(p.kgbCountdownDays,true)"></span></td><td><div style="display:flex;align-items:center;gap:8px"><div style="width:48px;background:#F1F4F9;border-radius:10px;height:6px;overflow:hidden"><div style="background:#10B981;height:6px;border-radius:10px" :style="'width:'+p.progressBerkas+'%'"></div></div><span style="font-size:11px;color:#94A3B8" x-text="p.progressBerkas+'%'"></span></div></td><td style="text-align:center"><div class="flex items-center justify-center gap-1.5"><button type="button" @click="viewPegawaiProfileByNip(p.nip)" class="si-btn si-btn-xs si-btn-primary">Edit</button><button type="button" @click="hapusPegawai(p.nip)" class="si-btn si-btn-xs si-btn-danger">Hapus</button></div></td></tr></template></tbody></table></div>
   </div>
@@ -229,12 +256,30 @@
 
 <!-- PROFIL PEGAWAI -->
 <div x-show="activeMenu==='profil'" class="space-y-6">
-<button @click="activeMenu='pegawai'" class="text-xs text-[#0B2341] hover:underline flex items-center gap-1"><i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali</button>
+<div class="flex items-center gap-3">
+  <button @click="activeMenu='pegawai'" class="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0B1F3A] bg-white border border-slate-200 hover:bg-slate-50 rounded-xl px-3.5 py-2 transition-all"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Kembali ke daftar</button>
+</div>
 <template x-if="selectedPegawai">
 <div>
-<div class="bg-gradient-to-br from-[#0B1F3A] to-[#0D2847] text-white rounded-2xl p-6 relative overflow-hidden" style="border:1px solid rgba(212,160,23,.12)"><div class="absolute right-0 top-0 opacity-[0.06]"><i data-lucide="user-check" class="w-72 h-72"></i></div><div class="relative flex flex-col md:flex-row items-center gap-5"><div class="relative"><img :src="selectedPegawai.foto||'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=250'" class="w-20 h-20 md:w-28 md:h-28 rounded-full object-cover" style="border:3px solid rgba(212,160,23,.4)"><label class="absolute bottom-0 right-0 bg-[#D4A017] p-1.5 rounded-full cursor-pointer transition hover:bg-[#C5960A]"><i data-lucide="camera" class="w-3.5 h-3.5 text-[#0B1F3A]"></i><input type="file" accept="image/*" @change="uploadFoto($event)" class="hidden"></label></div><div><h2 class="text-xl font-extrabold text-white" x-text="selectedPegawai.nama"></h2><p class="text-sm text-[#D4A017]" x-text="selectedPegawai.golongan+' — '+selectedPegawai.jabatan"></p><p class="text-xs text-white/40 mt-0.5" x-text="selectedPegawai.nip"></p></div></div></div>
+<div class="si-profile-hero">
+  <div class="si-profile-hero-bg"><i data-lucide="user-check"></i></div>
+  <div class="si-profile-hero-content">
+    <div class="si-profile-photo">
+      <img :src="selectedPegawai.foto||'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=250'" alt="Foto profil">
+      <label class="si-profile-photo-upload"><i data-lucide="camera"></i><input type="file" accept="image/*" @change="uploadFoto($event)"></label>
+    </div>
+    <div class="si-profile-info">
+      <h2 class="si-profile-name" x-text="selectedPegawai.nama"></h2>
+      <p class="si-profile-role" x-text="selectedPegawai.golongan+' — '+selectedPegawai.jabatan"></p>
+      <p class="si-profile-nip" x-text="'NIP. '+selectedPegawai.nip"></p>
+    </div>
+    <div class="hidden md:flex items-center gap-2 self-start mt-2">
+      <span class="inline-flex items-center gap-1 text-[10px] font-bold text-[#D4A017] bg-[#D4A017]/10 px-3 py-1.5 rounded-full">Terakhir diperbarui: <span x-text="selectedPegawai.updatedAt ? new Date(selectedPegawai.updatedAt).toLocaleDateString('id-ID') : '-'"></span></span>
+    </div>
+  </div>
+</div>
 
-<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
 <div class="si-countdown-card"><p class="si-countdown-card-label">Pangkat</p><p class="si-countdown-card-value" :class="getCountdownClass(selectedPegawai.pangkatCountdownDays)" x-text="formatCountdown(selectedPegawai.pangkatCountdownDays)"></p></div>
 <div class="si-countdown-card"><p class="si-countdown-card-label">KGB</p><p class="si-countdown-card-value" :class="getCountdownClass(selectedPegawai.kgbCountdownDays)" x-text="formatCountdown(selectedPegawai.kgbCountdownDays)"></p></div>
 <div class="si-countdown-card"><p class="si-countdown-card-label">Pensiun</p><p class="si-countdown-card-value" :class="getCountdownClass(selectedPegawai.pensiunCountdown)" x-text="formatCountdown(selectedPegawai.pensiunCountdown)"></p></div>
@@ -242,116 +287,181 @@
 </div>
 
 <div class="si-card">
-<div class="flex overflow-x-auto gap-1 border-b border-slate-100 pb-2">
-<button @click="selectedTab='identitas'" :class="selectedTab==='identitas'?'border-b-2 border-[#D4A017] text-[#0B1F3A] font-semibold':'text-slate-400 hover:text-slate-600'" class="px-4 py-2 text-xs whitespace-nowrap transition">Identitas</button>
-<button @click="selectedTab='pangkat'" :class="selectedTab==='pangkat'?'border-b-2 border-[#D4A017] text-[#0B1F3A] font-semibold':'text-slate-400 hover:text-slate-600'" class="px-4 py-2 text-xs whitespace-nowrap transition">Pangkat</button>
-<button @click="selectedTab='jabatan'" :class="selectedTab==='jabatan'?'border-b-2 border-[#D4A017] text-[#0B1F3A] font-semibold':'text-slate-400 hover:text-slate-600'" class="px-4 py-2 text-xs whitespace-nowrap transition">Jabatan</button>
-<button @click="selectedTab='kgb'" :class="selectedTab==='kgb'?'border-b-2 border-[#D4A017] text-[#0B1F3A] font-semibold':'text-slate-400 hover:text-slate-600'" class="px-4 py-2 text-xs whitespace-nowrap transition">KGB</button>
-<button @click="selectedTab='skp'" :class="selectedTab==='skp'?'border-b-2 border-[#D4A017] text-[#0B1F3A] font-semibold':'text-slate-400 hover:text-slate-600'" class="px-4 py-2 text-xs whitespace-nowrap transition">SKP</button>
-<button @click="selectedTab='cuti'" :class="selectedTab==='cuti'?'border-b-2 border-[#D4A017] text-[#0B1F3A] font-semibold':'text-slate-400 hover:text-slate-600'" class="px-4 py-2 text-xs whitespace-nowrap transition">Cuti/Izin/DL</button>
+<div class="si-tab-slider" x-init="$watch('selectedTab',()=>$nextTick(()=>{let a=$el.querySelector('.si-tab-btn.active'),i=document.getElementById('tabIndicator');if(a&&i){i.style.left=a.offsetLeft+'px';i.style.width=a.offsetWidth+'px'}}));$nextTick(()=>{let a=$el.querySelector('.si-tab-btn.active'),i=document.getElementById('tabIndicator');if(a&&i){i.style.left=a.offsetLeft+'px';i.style.width=a.offsetWidth+'px'}})">
+  <button @click="selectedTab='identitas'" :class="selectedTab==='identitas'?'active':''" class="si-tab-btn" data-tab="identitas">Identitas</button>
+  <button @click="selectedTab='pangkat'" :class="selectedTab==='pangkat'?'active':''" class="si-tab-btn" data-tab="pangkat">Pangkat</button>
+  <button @click="selectedTab='jabatan'" :class="selectedTab==='jabatan'?'active':''" class="si-tab-btn" data-tab="jabatan">Jabatan</button>
+  <button @click="selectedTab='kgb'" :class="selectedTab==='kgb'?'active':''" class="si-tab-btn" data-tab="kgb">KGB</button>
+  <button @click="selectedTab='skp'" :class="selectedTab==='skp'?'active':''" class="si-tab-btn" data-tab="skp">SKP</button>
+  <button @click="selectedTab='cuti'" :class="selectedTab==='cuti'?'active':''" class="si-tab-btn" data-tab="cuti">Cuti/Izin/DL</button>
+  <div class="si-tab-slider-indicator" id="tabIndicator"></div>
 </div>
-<div class="mt-4">
+<div class="p-6">
 
 <!-- TAB IDENTITAS -->
-<div x-show="selectedTab==='identitas'" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-<div><label class="font-semibold text-slate-500 text-[11px]">Nama</label><input type="text" x-model="selectedPegawai.nama" @change="savePegawaiEdit()" class="si-input si-input-sm"></div>
-<div><label class="font-semibold text-slate-500 text-[11px]">NIP</label><input type="text" x-model="selectedPegawai.nip" class="si-input si-input-sm" style="background:#F1F4F9;cursor:not-allowed" readonly></div>
-<div><label class="font-semibold text-slate-500 text-[11px]">Jabatan</label><input type="text" x-model="selectedPegawai.jabatan" @change="savePegawaiEdit()" class="si-input si-input-sm"></div>
-<div><label class="font-semibold text-slate-500 text-[11px]">Jenis Kelamin</label><select x-model="selectedPegawai.gender" @change="savePegawaiEdit()" class="si-select" style="height:42px;font-size:13px;padding:0 14px;background-position:right 12px center"><option value="Laki-laki">Laki-laki</option><option value="Perempuan">Perempuan</option></select></div>
-<div><label class="font-semibold text-slate-500 text-[11px]">Tgl Lahir</label><input type="date" x-model="selectedPegawai.tglLahir" @change="savePegawaiEdit()" class="si-input si-input-sm"></div>
-<div><label class="font-semibold text-slate-500 text-[11px]">Pendidikan Terakhir</label><select x-model="selectedPegawai.pendidikan" @change="savePegawaiEdit()" class="si-select" style="height:42px;font-size:13px;padding:0 14px;background-position:right 12px center"><option value="SMA/SMK">SMA/SMK</option><option value="D3">D3</option><option value="S1">S1</option><option value="S2">S2</option><option value="S3">S3</option></select></div>
-<div><label class="font-semibold text-slate-500 text-[11px]">TMT PNS</label><input type="date" x-model="selectedPegawai.tmtPns" @change="savePegawaiEdit()" class="si-input si-input-sm"></div>
-<div><label class="font-semibold text-slate-500 text-[11px]">Email</label><input type="email" x-model="selectedPegawai.email" @change="savePegawaiEdit()" class="si-input si-input-sm"></div>
-<div><label class="font-semibold text-slate-500 text-[11px]">No HP</label><input type="text" x-model="selectedPegawai.noHp" @change="savePegawaiEdit()" class="si-input si-input-sm"></div>
-<div class="md:col-span-2 p-3 bg-amber-50/80 border border-amber-100 rounded-xl flex items-center gap-3">
-  <i data-lucide="clock" class="w-5 h-5 text-amber-500 flex-shrink-0"></i>
-  <div><p class="font-semibold text-[11px] text-amber-800">Countdown Pensiun</p><p class="text-sm font-extrabold" :class="getCountdownClass(selectedPegawai.pensiunCountdown)" x-text="formatCountdown(selectedPegawai.pensiunCountdown)"></p></div>
+<div x-show="selectedTab==='identitas'" class="space-y-5">
+
+<div class="si-section-card">
+  <div class="si-section-title"><i data-lucide="user"></i> Informasi Pribadi</div>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div><label class="block font-semibold text-slate-600 text-[12px] mb-1">Nama Lengkap</label><input type="text" x-model="selectedPegawai.nama" class="si-input" placeholder="Nama lengkap pegawai"></div>
+    <div><label class="block font-semibold text-slate-600 text-[12px] mb-1">Jenis Kelamin</label><select x-model="selectedPegawai.gender" class="si-select"><option value="Laki-laki">Laki-laki</option><option value="Perempuan">Perempuan</option></select></div>
+    <div><label class="block font-semibold text-slate-600 text-[12px] mb-1">Tanggal Lahir</label><input type="date" x-model="selectedPegawai.tglLahir" class="si-input"></div>
+    <div><label class="block font-semibold text-slate-600 text-[12px] mb-1">Pendidikan Terakhir</label><select x-model="selectedPegawai.pendidikan" class="si-select"><option value="SMA/SMK">SMA/SMK</option><option value="D3">D3</option><option value="S1">S1</option><option value="S2">S2</option><option value="S3">S3</option></select></div>
+    <div><label class="block font-semibold text-slate-600 text-[12px] mb-1">Email</label><input type="email" x-model="selectedPegawai.email" class="si-input" placeholder="email@domain.com"><p class="si-helper-text">Alamat email resmi untuk korespondensi</p></div>
+    <div><label class="block font-semibold text-slate-600 text-[12px] mb-1">No. HP</label><input type="text" x-model="selectedPegawai.noHp" class="si-input" placeholder="08xxxxxxxxxx"></div>
+  </div>
 </div>
-<div class="md:col-span-2 flex gap-2 pt-3 border-t border-slate-100"><button @click="hapusPegawai(selectedPegawai.nip)" class="si-btn si-btn-xs si-btn-danger">Hapus Pegawai</button></div>
+
+<div class="si-section-card">
+  <div class="si-section-title"><i data-lucide="briefcase"></i> Data Kepegawaian</div>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div><label class="block font-semibold text-slate-600 text-[12px] mb-1">NIP</label><input type="text" x-model="selectedPegawai.nip" class="si-input" readonly><p class="si-helper-text">Nomor Induk Pegawai — tidak dapat diubah</p></div>
+    <div><label class="block font-semibold text-slate-600 text-[12px] mb-1">Jabatan</label><input type="text" x-model="selectedPegawai.jabatan" class="si-input" placeholder="Jabatan struktural / fungsional"></div>
+    <div><label class="block font-semibold text-slate-600 text-[12px] mb-1">TMT PNS</label><input type="date" x-model="selectedPegawai.tmtPns" class="si-input"></div>
+    <div class="md:col-span-2 p-4 bg-amber-50/80 border border-amber-100 rounded-xl flex items-center gap-3">
+      <i data-lucide="clock" class="w-5 h-5 text-amber-500 flex-shrink-0"></i>
+      <div><p class="font-semibold text-[11px] text-amber-800">Countdown Pensiun</p><p class="text-base font-extrabold" :class="getCountdownClass(selectedPegawai.pensiunCountdown)" x-text="formatCountdown(selectedPegawai.pensiunCountdown)"></p></div>
+    </div>
+  </div>
+</div>
+
+<div class="si-sticky-bar">
+  <button @click="hapusPegawai(selectedPegawai.nip)" class="si-btn si-btn-xs si-btn-danger"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Hapus Pegawai</button>
+  <button @click="savePegawaiEdit()" class="si-btn si-btn-primary si-btn-sm" style="gap:7px"><i data-lucide="save" class="w-4 h-4"></i> Simpan Perubahan</button>
+</div>
 </div>
 
 <!-- TAB PANGKAT -->
-<div x-show="selectedTab==='pangkat'" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-<div><label class="font-semibold text-slate-500 text-[11px]">Nama Pangkat</label><input type="text" x-model="selectedPegawai.namaPangkat" @change="savePegawaiEdit()" placeholder="e.g. Pengatur Muda Tk.I" class="si-input si-input-sm"></div>
-<div><label class="font-semibold text-slate-500 text-[11px]">Golongan</label><select x-model="selectedPegawai.golongan" @change="savePegawaiEdit()" class="si-select" style="height:42px;font-size:13px;padding:0 14px;background-position:right 12px center"><option value="II/a">II/a</option><option value="II/b">II/b</option><option value="II/c">II/c</option><option value="II/d">II/d</option><option value="III/a">III/a</option><option value="III/b">III/b</option><option value="III/c">III/c</option><option value="III/d">III/d</option><option value="IV/a">IV/a</option><option value="IV/b">IV/b</option><option value="IV/c">IV/c</option><option value="IV/d">IV/d</option><option value="IV/e">IV/e</option></select></div>
-<div><label class="font-semibold text-slate-500 text-[11px]">TMT Pangkat Terakhir</label><input type="date" x-model="selectedPegawai.tglPangkatTerakhir" @change="savePegawaiEdit()" class="si-input si-input-sm"></div>
-<div><label class="font-semibold text-slate-500 text-[11px]">TMT Pangkat Berikutnya</label><input type="date" x-model="selectedPegawai.tglPangkatBerikutnya" @change="savePegawaiEdit();recalcSelected()" class="si-input si-input-sm"></div>
-<div><label class="font-semibold text-slate-500 text-[11px]">Pangkat Berikutnya</label><input type="text" x-model="selectedPegawai.pangkatBerikutnya" @change="savePegawaiEdit()" placeholder="e.g. Pengatur Tk.I" class="si-input si-input-sm"></div>
-<div class="p-3 bg-blue-50/80 border border-blue-100 rounded-xl flex items-center gap-3">
-  <i data-lucide="award" class="w-5 h-5 text-blue-500"></i>
-  <div><p class="font-semibold text-[11px] text-blue-800">Countdown Naik Pangkat</p><p class="text-sm font-extrabold" :class="getCountdownClass(selectedPegawai.pangkatCountdownDays)" x-text="formatCountdown(selectedPegawai.pangkatCountdownDays)"></p></div>
+<div x-show="selectedTab==='pangkat'" class="space-y-5">
+<div class="si-section-card">
+  <div class="si-section-title"><i data-lucide="award"></i> Data Kepangkatan</div>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div><label class="block font-semibold text-slate-600 text-[12px] mb-1">Nama Pangkat</label><input type="text" x-model="selectedPegawai.namaPangkat" placeholder="e.g. Pengatur Muda Tk.I" class="si-input"></div>
+    <div><label class="block font-semibold text-slate-600 text-[12px] mb-1">Golongan</label><select x-model="selectedPegawai.golongan" class="si-select"><option value="II/a">II/a</option><option value="II/b">II/b</option><option value="II/c">II/c</option><option value="II/d">II/d</option><option value="III/a">III/a</option><option value="III/b">III/b</option><option value="III/c">III/c</option><option value="III/d">III/d</option><option value="IV/a">IV/a</option><option value="IV/b">IV/b</option><option value="IV/c">IV/c</option><option value="IV/d">IV/d</option><option value="IV/e">IV/e</option></select></div>
+    <div><label class="block font-semibold text-slate-600 text-[12px] mb-1">TMT Pangkat Terakhir</label><input type="date" x-model="selectedPegawai.tglPangkatTerakhir" class="si-input"></div>
+    <div><label class="block font-semibold text-slate-600 text-[12px] mb-1">TMT Pangkat Berikutnya</label><input type="date" x-model="selectedPegawai.tglPangkatBerikutnya" @change="recalcSelected()" class="si-input"></div>
+    <div class="md:col-span-2"><label class="block font-semibold text-slate-600 text-[12px] mb-1">Pangkat Berikutnya</label><input type="text" x-model="selectedPegawai.pangkatBerikutnya" placeholder="e.g. Pengatur Tk.I" class="si-input"></div>
+    <div class="md:col-span-2 p-4 bg-blue-50/80 border border-blue-100 rounded-xl flex items-center gap-3">
+      <i data-lucide="award" class="w-5 h-5 text-blue-500"></i>
+      <div><p class="font-semibold text-[11px] text-blue-800">Countdown Naik Pangkat</p><p class="text-base font-extrabold" :class="getCountdownClass(selectedPegawai.pangkatCountdownDays)" x-text="formatCountdown(selectedPegawai.pangkatCountdownDays)"></p></div>
+    </div>
+  </div>
 </div>
-<div class="md:col-span-2 border-2 border-dashed border-[#D4A017]/30 rounded-xl p-4 text-center relative bg-amber-50/30 transition hover:bg-amber-50">
-<input type="file" accept="application/pdf" @change="handleDocUpload($event,'skPangkat')" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-0">
-<i data-lucide="upload-cloud" class="w-7 h-7 text-[#D4A017] mx-auto"></i>
-<p class="text-[11px] font-semibold text-slate-600 mt-1">Upload SK Pangkat (PDF)</p>
-<template x-if="selectedPegawai.dokumen && selectedPegawai.dokumen.skPangkat && selectedPegawai.dokumen.skPangkat.namaFile">
-<div class="mt-2 relative z-10 pointer-events-none flex items-center justify-center gap-2"><span class="text-xs text-emerald-600 font-semibold" x-text="selectedPegawai.dokumen.skPangkat.namaFile"></span><button type="button" @click.stop="openPdfViewer(selectedPegawai.dokumen.skPangkat,'SK Pangkat')" class="pointer-events-auto si-btn si-btn-xs si-btn-primary">Lihat</button></div>
-</template>
+<div class="si-section-card">
+  <div class="si-section-title"><i data-lucide="file-text"></i> Dokumen SK Pangkat</div>
+  <div class="si-upload-zone">
+    <input type="file" accept="application/pdf" @change="handleDocUpload($event,'skPangkat')">
+    <i data-lucide="upload-cloud" class="w-7 h-7 text-[#D4A017] mx-auto"></i>
+    <p class="text-xs font-semibold text-slate-600 mt-1">Upload SK Pangkat (PDF)</p>
+    <p class="si-helper-text mt-1">Format PDF, maks. 5MB</p>
+    <template x-if="selectedPegawai.dokumen && selectedPegawai.dokumen.skPangkat && selectedPegawai.dokumen.skPangkat.namaFile">
+    <div class="mt-3 pointer-events-none flex items-center justify-center gap-2"><span class="text-xs text-emerald-600 font-semibold" x-text="selectedPegawai.dokumen.skPangkat.namaFile"></span><button type="button" @click.stop="openPdfViewer(selectedPegawai.dokumen.skPangkat,'SK Pangkat')" class="pointer-events-auto si-btn si-btn-xs si-btn-primary">Lihat</button></div>
+    </template>
+  </div>
+</div>
+<div class="si-sticky-bar">
+  <button @click="savePegawaiEdit()" class="si-btn si-btn-primary si-btn-sm" style="gap:7px"><i data-lucide="save" class="w-4 h-4"></i> Simpan Perubahan</button>
 </div>
 </div>
 
 <!-- TAB JABATAN -->
-<div x-show="selectedTab==='jabatan'" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-<div class="md:col-span-2"><label class="font-semibold text-slate-500 text-[11px]">Nama Jabatan</label><input type="text" x-model="selectedPegawai.jabatan" @change="savePegawaiEdit()" class="si-input si-input-sm"></div>
-<div><label class="font-semibold text-slate-500 text-[11px]">TMT Jabatan</label><input type="date" x-model="selectedPegawai.tmtJabatan" @change="savePegawaiEdit()" class="si-input si-input-sm"></div>
-<div><label class="font-semibold text-slate-500 text-[11px]">No SK Jabatan</label><input type="text" x-model="selectedPegawai.dokumen.skJabatan.nomor" @change="savePegawaiEdit()" class="si-input si-input-sm"></div>
-<div class="md:col-span-2 border-2 border-dashed border-[#D4A017]/30 rounded-xl p-4 text-center relative bg-amber-50/30 transition hover:bg-amber-50">
-<input type="file" accept="application/pdf" @change="handleDocUpload($event,'skJabatan')" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-0">
-<i data-lucide="upload-cloud" class="w-7 h-7 text-[#D4A017] mx-auto"></i>
-<p class="text-[11px] font-semibold text-slate-600 mt-1">Upload SK Jabatan (PDF)</p>
-<template x-if="selectedPegawai.dokumen && selectedPegawai.dokumen.skJabatan && selectedPegawai.dokumen.skJabatan.namaFile">
-<div class="mt-2 relative z-10 pointer-events-none flex items-center justify-center gap-2"><span class="text-xs text-emerald-600 font-semibold" x-text="selectedPegawai.dokumen.skJabatan.namaFile"></span><button type="button" @click.stop="openPdfViewer(selectedPegawai.dokumen.skJabatan,'SK Jabatan')" class="pointer-events-auto si-btn si-btn-xs si-btn-primary">Lihat</button></div>
-</template>
+<div x-show="selectedTab==='jabatan'" class="space-y-5">
+<div class="si-section-card">
+  <div class="si-section-title"><i data-lucide="briefcase"></i> Data Jabatan</div>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="md:col-span-2"><label class="block font-semibold text-slate-600 text-[12px] mb-1">Nama Jabatan</label><input type="text" x-model="selectedPegawai.jabatan" class="si-input" placeholder="Nama jabatan struktural / fungsional"></div>
+    <div><label class="block font-semibold text-slate-600 text-[12px] mb-1">TMT Jabatan</label><input type="date" x-model="selectedPegawai.tmtJabatan" class="si-input"></div>
+    <div><label class="block font-semibold text-slate-600 text-[12px] mb-1">No. SK Jabatan</label><input type="text" x-model="selectedPegawai.dokumen.skJabatan.nomor" class="si-input" placeholder="Nomor surat keputusan"></div>
+  </div>
+</div>
+<div class="si-section-card">
+  <div class="si-section-title"><i data-lucide="file-text"></i> Dokumen SK Jabatan</div>
+  <div class="si-upload-zone">
+    <input type="file" accept="application/pdf" @change="handleDocUpload($event,'skJabatan')">
+    <i data-lucide="upload-cloud" class="w-7 h-7 text-[#D4A017] mx-auto"></i>
+    <p class="text-xs font-semibold text-slate-600 mt-1">Upload SK Jabatan (PDF)</p>
+    <p class="si-helper-text mt-1">Format PDF, maks. 5MB</p>
+    <template x-if="selectedPegawai.dokumen && selectedPegawai.dokumen.skJabatan && selectedPegawai.dokumen.skJabatan.namaFile">
+    <div class="mt-3 pointer-events-none flex items-center justify-center gap-2"><span class="text-xs text-emerald-600 font-semibold" x-text="selectedPegawai.dokumen.skJabatan.namaFile"></span><button type="button" @click.stop="openPdfViewer(selectedPegawai.dokumen.skJabatan,'SK Jabatan')" class="pointer-events-auto si-btn si-btn-xs si-btn-primary">Lihat</button></div>
+    </template>
+  </div>
+</div>
+<div class="si-sticky-bar">
+  <button @click="savePegawaiEdit()" class="si-btn si-btn-primary si-btn-sm" style="gap:7px"><i data-lucide="save" class="w-4 h-4"></i> Simpan Perubahan</button>
 </div>
 </div>
 
 <!-- TAB KGB -->
-<div x-show="selectedTab==='kgb'" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-<div><label class="font-semibold text-slate-500 text-[11px]">Tgl KGB Terakhir</label><input type="date" x-model="selectedPegawai.tglKgbTerakhir" @change="savePegawaiEdit()" class="si-input si-input-sm"></div>
-<div><label class="font-semibold text-slate-500 text-[11px]">Tgl KGB Berikutnya</label><input type="date" x-model="selectedPegawai.tglKgbBerikutnya" @change="savePegawaiEdit();recalcSelected()" class="si-input si-input-sm"></div>
-<div><label class="font-semibold text-slate-500 text-[11px]">No SK KGB</label><input type="text" x-model="selectedPegawai.dokumen.skKgb.nomor" @change="savePegawaiEdit()" class="si-input si-input-sm"></div>
-<div class="p-3 bg-yellow-50/80 border border-yellow-100 rounded-xl flex items-center gap-3">
-  <i data-lucide="badge-percent" class="w-5 h-5 text-yellow-500"></i>
-  <div><p class="font-semibold text-[11px] text-yellow-800">Countdown KGB</p><p class="text-sm font-extrabold" :class="getCountdownClass(selectedPegawai.kgbCountdownDays)" x-text="formatCountdown(selectedPegawai.kgbCountdownDays)"></p></div>
+<div x-show="selectedTab==='kgb'" class="space-y-5">
+<div class="si-section-card">
+  <div class="si-section-title"><i data-lucide="badge-percent"></i> Data KGB</div>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div><label class="block font-semibold text-slate-600 text-[12px] mb-1">Tgl KGB Terakhir</label><input type="date" x-model="selectedPegawai.tglKgbTerakhir" class="si-input"></div>
+    <div><label class="block font-semibold text-slate-600 text-[12px] mb-1">Tgl KGB Berikutnya</label><input type="date" x-model="selectedPegawai.tglKgbBerikutnya" @change="recalcSelected()" class="si-input"></div>
+    <div class="md:col-span-2"><label class="block font-semibold text-slate-600 text-[12px] mb-1">No. SK KGB</label><input type="text" x-model="selectedPegawai.dokumen.skKgb.nomor" class="si-input" placeholder="Nomor surat keputusan KGB"></div>
+    <div class="md:col-span-2 p-4 bg-yellow-50/80 border border-yellow-100 rounded-xl flex items-center gap-3">
+      <i data-lucide="badge-percent" class="w-5 h-5 text-yellow-500"></i>
+      <div><p class="font-semibold text-[11px] text-yellow-800">Countdown KGB</p><p class="text-base font-extrabold" :class="getCountdownClass(selectedPegawai.kgbCountdownDays)" x-text="formatCountdown(selectedPegawai.kgbCountdownDays)"></p></div>
+    </div>
+  </div>
 </div>
-<div class="md:col-span-2 border-2 border-dashed border-[#D4A017]/30 rounded-xl p-4 text-center relative bg-amber-50/30 transition hover:bg-amber-50">
-<input type="file" accept="application/pdf" @change="handleDocUpload($event,'skKgb')" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-0">
-<i data-lucide="upload-cloud" class="w-7 h-7 text-[#D4A017] mx-auto"></i>
-<p class="text-[11px] font-semibold text-slate-600 mt-1">Upload SK KGB (PDF)</p>
-<template x-if="selectedPegawai.dokumen && selectedPegawai.dokumen.skKgb && selectedPegawai.dokumen.skKgb.namaFile">
-<div class="mt-2 relative z-10 pointer-events-none flex items-center justify-center gap-2"><span class="text-xs text-emerald-600 font-semibold" x-text="selectedPegawai.dokumen.skKgb.namaFile"></span><button type="button" @click.stop="openPdfViewer(selectedPegawai.dokumen.skKgb,'SK KGB')" class="pointer-events-auto si-btn si-btn-xs si-btn-primary">Lihat</button></div>
-</template>
+<div class="si-section-card">
+  <div class="si-section-title"><i data-lucide="file-text"></i> Dokumen SK KGB</div>
+  <div class="si-upload-zone">
+    <input type="file" accept="application/pdf" @change="handleDocUpload($event,'skKgb')">
+    <i data-lucide="upload-cloud" class="w-7 h-7 text-[#D4A017] mx-auto"></i>
+    <p class="text-xs font-semibold text-slate-600 mt-1">Upload SK KGB (PDF)</p>
+    <p class="si-helper-text mt-1">Format PDF, maks. 5MB</p>
+    <template x-if="selectedPegawai.dokumen && selectedPegawai.dokumen.skKgb && selectedPegawai.dokumen.skKgb.namaFile">
+    <div class="mt-3 pointer-events-none flex items-center justify-center gap-2"><span class="text-xs text-emerald-600 font-semibold" x-text="selectedPegawai.dokumen.skKgb.namaFile"></span><button type="button" @click.stop="openPdfViewer(selectedPegawai.dokumen.skKgb,'SK KGB')" class="pointer-events-auto si-btn si-btn-xs si-btn-primary">Lihat</button></div>
+    </template>
+  </div>
+</div>
+<div class="si-sticky-bar">
+  <button @click="savePegawaiEdit()" class="si-btn si-btn-primary si-btn-sm" style="gap:7px"><i data-lucide="save" class="w-4 h-4"></i> Simpan Perubahan</button>
 </div>
 </div>
 
 <!-- TAB SKP -->
-<div x-show="selectedTab==='skp'" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-<div><label class="font-semibold text-slate-500 text-[11px]">Tahun SKP</label><input type="number" x-model="selectedPegawai.dokumen.skpKgb.tahun" @change="savePegawaiEdit()" class="si-input si-input-sm" placeholder="2025"></div>
-<div><label class="font-semibold text-slate-500 text-[11px]">Nilai SKP</label><input type="number" x-model="selectedPegawai.dokumen.skpKgb.nilai" @change="savePegawaiEdit()" class="si-input si-input-sm" placeholder="85" min="0" max="100"></div>
-<div class="md:col-span-2"><label class="font-semibold text-slate-500 text-[11px]">Predikat / Kategori</label>
-<select x-model="selectedPegawai.dokumen.skpKgb.predikat" @change="savePegawaiEdit()" class="si-select" style="height:42px;font-size:13px;padding:0 14px;background-position:right 12px center">
-<option value="Di Atas Ekspektasi">Di Atas Ekspektasi</option>
-<option value="Sesuai Ekspektasi">Sesuai Ekspektasi</option>
-<option value="Di Bawah Ekspektasi">Di Bawah Ekspektasi</option>
-</select></div>
-<div class="md:col-span-2 p-3 rounded-xl border" :class="selectedPegawai.dokumen.skpKgb.predikat==='Di Atas Ekspektasi'?'bg-emerald-50 border-emerald-200':selectedPegawai.dokumen.skpKgb.predikat==='Di Bawah Ekspektasi'?'bg-red-50 border-red-200':'bg-blue-50 border-blue-200'">
-<p class="font-semibold text-sm" x-text="'Predikat: '+selectedPegawai.dokumen.skpKgb.predikat"></p>
-<p class="text-xs text-slate-400 mt-1" x-text="'Nilai: '+selectedPegawai.dokumen.skpKgb.nilai+' | Tahun: '+selectedPegawai.dokumen.skpKgb.tahun"></p>
+<div x-show="selectedTab==='skp'" class="space-y-5">
+<div class="si-section-card">
+  <div class="si-section-title"><i data-lucide="clipboard-check"></i> Data SKP</div>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div><label class="block font-semibold text-slate-600 text-[12px] mb-1">Tahun SKP</label><input type="number" x-model="selectedPegawai.dokumen.skpKgb.tahun" class="si-input" placeholder="2025"></div>
+    <div><label class="block font-semibold text-slate-600 text-[12px] mb-1">Nilai SKP</label><input type="number" x-model="selectedPegawai.dokumen.skpKgb.nilai" class="si-input" placeholder="85" min="0" max="100"></div>
+    <div class="md:col-span-2"><label class="block font-semibold text-slate-600 text-[12px] mb-1">Predikat / Kategori</label>
+    <select x-model="selectedPegawai.dokumen.skpKgb.predikat" class="si-select">
+    <option value="Di Atas Ekspektasi">Di Atas Ekspektasi</option>
+    <option value="Sesuai Ekspektasi">Sesuai Ekspektasi</option>
+    <option value="Di Bawah Ekspektasi">Di Bawah Ekspektasi</option>
+    </select></div>
+    <div class="md:col-span-2 p-4 rounded-xl border" :class="selectedPegawai.dokumen.skpKgb.predikat==='Di Atas Ekspektasi'?'bg-emerald-50 border-emerald-200':selectedPegawai.dokumen.skpKgb.predikat==='Di Bawah Ekspektasi'?'bg-red-50 border-red-200':'bg-blue-50 border-blue-200'">
+    <p class="font-semibold text-sm" x-text="'Predikat: '+selectedPegawai.dokumen.skpKgb.predikat"></p>
+    <p class="text-xs text-slate-400 mt-1" x-text="'Nilai: '+selectedPegawai.dokumen.skpKgb.nilai+' | Tahun: '+selectedPegawai.dokumen.skpKgb.tahun"></p>
+    </div>
+  </div>
 </div>
-<div class="md:col-span-2 border-2 border-dashed border-[#D4A017]/30 rounded-xl p-4 text-center relative bg-amber-50/30 transition hover:bg-amber-50">
-<input type="file" accept="application/pdf" @change="handleDocUpload($event,'skp')" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-0">
-<i data-lucide="upload-cloud" class="w-7 h-7 text-[#D4A017] mx-auto"></i>
-<p class="text-[11px] font-semibold text-slate-600 mt-1">Upload File SKP (PDF)</p>
-<template x-if="selectedPegawai.dokumen && selectedPegawai.dokumen.skp && selectedPegawai.dokumen.skp.namaFile">
-<div class="mt-2 relative z-10 pointer-events-none flex items-center justify-center gap-2"><span class="text-xs text-emerald-600 font-semibold" x-text="selectedPegawai.dokumen.skp.namaFile"></span><button type="button" @click.stop="openPdfViewer(selectedPegawai.dokumen.skp,'SKP')" class="pointer-events-auto si-btn si-btn-xs si-btn-primary">Lihat</button></div>
-</template>
+<div class="si-section-card">
+  <div class="si-section-title"><i data-lucide="file-text"></i> Dokumen SKP</div>
+  <div class="si-upload-zone">
+    <input type="file" accept="application/pdf" @change="handleDocUpload($event,'skp')">
+    <i data-lucide="upload-cloud" class="w-7 h-7 text-[#D4A017] mx-auto"></i>
+    <p class="text-xs font-semibold text-slate-600 mt-1">Upload File SKP (PDF)</p>
+    <p class="si-helper-text mt-1">Format PDF, maks. 5MB</p>
+    <template x-if="selectedPegawai.dokumen && selectedPegawai.dokumen.skp && selectedPegawai.dokumen.skp.namaFile">
+    <div class="mt-3 pointer-events-none flex items-center justify-center gap-2"><span class="text-xs text-emerald-600 font-semibold" x-text="selectedPegawai.dokumen.skp.namaFile"></span><button type="button" @click.stop="openPdfViewer(selectedPegawai.dokumen.skp,'SKP')" class="pointer-events-auto si-btn si-btn-xs si-btn-primary">Lihat</button></div>
+    </template>
+  </div>
+</div>
+<div class="si-sticky-bar">
+  <button @click="savePegawaiEdit()" class="si-btn si-btn-primary si-btn-sm" style="gap:7px"><i data-lucide="save" class="w-4 h-4"></i> Simpan Perubahan</button>
 </div>
 </div>
 
 <!-- TAB CUTI -->
 <div x-show="selectedTab==='cuti'">
-<div class="flex justify-between items-center mb-3"><h3 class="font-semibold text-sm text-slate-700">Riwayat Cuti / Izin / DL / Sakit</h3><button @click="prefillCutiForSelected();showModalAddCuti=true" class="si-btn si-btn-xs si-btn-primary" style="gap:4px"><i data-lucide="plus" class="w-3 h-3"></i> Tambah</button></div>
+<div class="flex justify-between items-center mb-4"><h3 class="font-semibold text-sm text-slate-700">Riwayat Cuti / Izin / DL / Sakit</h3><button @click="prefillCutiForSelected();showModalAddCuti=true" class="si-btn si-btn-xs si-btn-primary" style="gap:5px"><i data-lucide="plus" class="w-3.5 h-3.5"></i> Tambah</button></div>
 <div class="si-table-wrap"><table class="si-table" style="font-size:12px"><thead><tr><th>Jenis</th><th>Mulai</th><th>Selesai</th><th>Keterangan</th><th>Aksi</th></tr></thead><tbody><template x-for="c in cutiList.filter(c=>c.nip===selectedPegawai.nip)" :key="c.cutiId"><tr><td><span class="si-badge" :class="c.jenisCuti==='Cuti Tahunan'?'si-badge-green':c.jenisCuti==='Sakit'?'si-badge-red':c.jenisCuti==='Izin'?'si-badge-navy':'si-badge-gold'" x-text="c.jenisCuti"></span></td><td x-text="c.tanggalMulai"></td><td x-text="c.tanggalSelesai"></td><td style="color:#64748B" x-text="c.keterangan"></td><td><button @click="hapusCuti(c.cutiId)" class="si-btn si-btn-xs si-btn-danger" style="height:28px;font-size:10px;padding:0 10px">Hapus</button></td></tr></template></tbody></table></div>
 </div>
 
@@ -436,11 +546,11 @@
 <div class="grid grid-cols-2 gap-4">
 <div class="col-span-2"><label class="font-semibold text-slate-600">NIP *</label><input type="text" x-model="newPegawaiForm.nip" required class="si-input si-input-sm"></div>
 <div class="col-span-2"><label class="font-semibold text-slate-600">Nama *</label><input type="text" x-model="newPegawaiForm.nama" required class="si-input si-input-sm"></div>
-<div><label class="font-semibold text-slate-600">Golongan</label><select x-model="newPegawaiForm.golongan" class="si-select" style="height:42px;font-size:13px;padding:0 14px;background-position:right 12px center"><option value="II/a">II/a</option><option value="II/b">II/b</option><option value="II/c">II/c</option><option value="II/d">II/d</option><option value="III/a">III/a</option><option value="III/b">III/b</option><option value="III/c">III/c</option><option value="III/d">III/d</option><option value="IV/a">IV/a</option><option value="IV/b">IV/b</option><option value="IV/c">IV/c</option><option value="IV/d">IV/d</option><option value="IV/e">IV/e</option></select></div>
-<div><label class="font-semibold text-slate-600">Jenis Kelamin</label><select x-model="newPegawaiForm.gender" class="si-select" style="height:42px;font-size:13px;padding:0 14px;background-position:right 12px center"><option value="Laki-laki">Laki-laki</option><option value="Perempuan">Perempuan</option></select></div>
+<div><label class="font-semibold text-slate-600">Golongan</label><select x-model="newPegawaiForm.golongan" class="si-select"><option value="II/a">II/a</option><option value="II/b">II/b</option><option value="II/c">II/c</option><option value="II/d">II/d</option><option value="III/a">III/a</option><option value="III/b">III/b</option><option value="III/c">III/c</option><option value="III/d">III/d</option><option value="IV/a">IV/a</option><option value="IV/b">IV/b</option><option value="IV/c">IV/c</option><option value="IV/d">IV/d</option><option value="IV/e">IV/e</option></select></div>
+<div><label class="font-semibold text-slate-600">Jenis Kelamin</label><select x-model="newPegawaiForm.gender" class="si-select"><option value="Laki-laki">Laki-laki</option><option value="Perempuan">Perempuan</option></select></div>
 <div class="col-span-2"><label class="font-semibold text-slate-600">Jabatan</label><input type="text" x-model="newPegawaiForm.jabatan" class="si-input si-input-sm"></div>
 <div><label class="font-semibold text-slate-600">Tgl Lahir</label><input type="date" x-model="newPegawaiForm.tglLahir" class="si-input si-input-sm"></div>
-<div><label class="font-semibold text-slate-600">Pendidikan</label><select x-model="newPegawaiForm.pendidikan" class="si-select" style="height:42px;font-size:13px;padding:0 14px;background-position:right 12px center"><option value="SMA/SMK">SMA/SMK</option><option value="D3">D3</option><option value="S1">S1</option><option value="S2">S2</option><option value="S3">S3</option></select></div>
+<div><label class="font-semibold text-slate-600">Pendidikan</label><select x-model="newPegawaiForm.pendidikan" class="si-select"><option value="SMA/SMK">SMA/SMK</option><option value="D3">D3</option><option value="S1">S1</option><option value="S2">S2</option><option value="S3">S3</option></select></div>
 </div>
 <div class="flex justify-end gap-2 pt-4 border-t border-slate-100"><button type="button" @click="showModalAddPegawai=false" class="si-btn si-btn-ghost si-btn-sm">Batal</button><button type="button" @click="saveNewPegawai()" class="si-btn si-btn-primary si-btn-sm">Simpan</button></div>
 </div>
@@ -452,8 +562,8 @@
 <div class="si-card w-full max-w-md shadow-2xl" style="border-radius:20px">
 <div class="bg-[#0B1F3A] text-white px-6 py-4 flex justify-between items-center"><h3 class="font-semibold text-sm">Input Cuti / Izin / Sakit / DL</h3><button @click="showModalAddCuti=false" class="text-white/60 hover:text-white transition"><i data-lucide="x" class="w-5 h-5"></i></button></div>
 <div class="p-6 space-y-4 text-xs">
-<div><label class="font-semibold text-slate-600">Pegawai *</label><select x-model="newCutiForm.nip" required class="si-select" style="height:42px;font-size:13px;padding:0 14px;background-position:right 12px center"><option value="">-- Pilih Pegawai --</option><template x-for="p in pegawaiList" :key="p.nip"><option :value="p.nip" x-text="p.nama+' ('+p.nip+')'"></option></template></select></div>
-<div><label class="font-semibold text-slate-600">Jenis *</label><select x-model="newCutiForm.jenisCuti" class="si-select" style="height:42px;font-size:13px;padding:0 14px;background-position:right 12px center"><option value="Cuti Tahunan">Cuti Tahunan</option><option value="Cuti Besar">Cuti Besar</option><option value="Sakit">Sakit</option><option value="Izin">Izin</option><option value="Dinas Luar">Dinas Luar</option></select></div>
+<div><label class="font-semibold text-slate-600">Pegawai *</label><select x-model="newCutiForm.nip" required class="si-select"><option value="">-- Pilih Pegawai --</option><template x-for="p in pegawaiList" :key="p.nip"><option :value="p.nip" x-text="p.nama+' ('+p.nip+')'"></option></template></select></div>
+<div><label class="font-semibold text-slate-600">Jenis *</label><select x-model="newCutiForm.jenisCuti" class="si-select"><option value="Cuti Tahunan">Cuti Tahunan</option><option value="Cuti Besar">Cuti Besar</option><option value="Sakit">Sakit</option><option value="Izin">Izin</option><option value="Dinas Luar">Dinas Luar</option></select></div>
 <div><label class="font-semibold text-slate-600">Keterangan</label><input type="text" x-model="newCutiForm.keterangan" class="si-input si-input-sm" placeholder="Opsional"></div>
 <div class="grid grid-cols-2 gap-4">
 <div><label class="font-semibold text-slate-600">Mulai *</label><input type="date" x-model="newCutiForm.tanggalMulai" required class="si-input si-input-sm"></div>
