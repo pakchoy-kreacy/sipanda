@@ -14,29 +14,14 @@
 <script src="https://unpkg.com/lucide@latest"></script>
 <!-- Firebase -->
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, doc, getDocs, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCoLvKceuAmNBMELnt-FdVha-EMmlvm0jU",
-  authDomain: "sipanda17.firebaseapp.com",
-  projectId: "sipanda17",
-  storageBucket: "sipanda17.firebasestorage.app",
-  messagingSenderId: "764369683072",
-  appId: "1:764369683072:web:e69fa8fe4dc9b443925c65"
-};
+const supabase = createClient(
+  "https://YOUR_PROJECT.supabase.co",
+  "YOUR_ANON_KEY"
+);
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-// Expose ke Alpine via window
-window._fb = {
-  auth, db,
-  signInWithEmailAndPassword, signOut, onAuthStateChanged,
-  collection, doc, getDocs, setDoc, deleteDoc, onSnapshot
-};
+window._supabase = supabase;
 </script>
 <style>
 #sipanda-app-root{position:fixed!important;inset:0;width:100vw!important;height:100vh!important;z-index:999999999!important;background:#F4F6F9!important;overflow-y:auto!important;font-family:Inter,sans-serif}
@@ -113,9 +98,9 @@ window._fb = {
 <div class="flex items-center space-x-4"><span class="lg:hidden w-10 h-10 bg-[#0B2341] text-white rounded-full flex items-center justify-center"><i data-lucide="shield" class="w-5 h-5"></i></span><div><h1 class="text-xl font-extrabold text-[#0B2341] tracking-tight">SIPANDA</h1><p class="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Lapas Kelas IIA Banyuasin</p></div></div>
 <div class="flex items-center space-x-3">
   <div class="relative hidden md:block w-72"><input type="text" x-model="searchQuery" @keyup.enter="runSmartSearch()" class="w-full bg-slate-100 border-0 focus:ring-2 focus:ring-[#C9A227] rounded-xl px-4 py-2 pl-10 text-xs text-slate-700" placeholder="🔍 Cari..."><span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><i data-lucide="sparkles" class="w-4 h-4"></i></span></div>
-  <div class="flex items-center gap-1.5 text-[10px]" :class="firestoreOnline?'text-emerald-600':'text-red-500'">
-    <div class="w-2 h-2 rounded-full" :class="firestoreOnline?'bg-emerald-500':'bg-red-500'"></div>
-    <span :title="databaseError" x-text="firestoreOnline?'Online':(databaseError?'Database error':'Menghubungkan...')"></span>
+  <div class="flex items-center gap-1.5 text-[10px]" :class="supabaseOnline?'text-emerald-600':'text-red-500'">
+    <div class="w-2 h-2 rounded-full" :class="supabaseOnline?'bg-emerald-500':'bg-red-500'"></div>
+    <span :title="databaseError" x-text="supabaseOnline?'Online':(databaseError?'Database error':'Menghubungkan...')"></span>
   </div>
 </div>
 </header>
@@ -344,10 +329,10 @@ window._fb = {
 <div x-show="activeMenu==='admin' && isAdmin" class="space-y-6">
 <h2 class="text-2xl font-extrabold text-[#0B2341]">Admin Console</h2>
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-<div class="bg-white rounded-3xl p-6 shadow-sm border"><h3 class="font-bold mb-2">Info Akun</h3><p class="text-xs text-slate-500" x-text="'Login sebagai: '+(sessionUser.email||'-')"></p><p class="text-xs text-slate-400 mt-1">Data tersimpan di Firestore Cloud (real-time)</p></div>
+<div class="bg-white rounded-3xl p-6 shadow-sm border"><h3 class="font-bold mb-2">Info Akun</h3><p class="text-xs text-slate-500" x-text="'Login sebagai: '+(sessionUser.email||'-')"></p><p class="text-xs text-slate-400 mt-1">Data tersimpan di Supabase PostgreSQL (real-time)</p></div>
 <div class="bg-white rounded-3xl p-6 shadow-sm border"><h3 class="font-bold mb-2">Backup Database</h3><p class="text-xs text-slate-500">Ekspor semua data pegawai & cuti ke file JSON.</p><button @click="exportDatabaseBackup()" class="bg-[#0B2341] text-white font-bold text-xs px-4 py-2 rounded-xl mt-4">Ekspor JSON</button></div>
 <div class="bg-white rounded-3xl p-6 shadow-sm border"><h3 class="font-bold mb-2">Restore Database</h3><p class="text-xs text-slate-500">Import file JSON backup untuk restore data.</p><input type="file" accept=".json" @change="importDatabaseBackup($event)" class="text-xs mt-4"></div>
-<div class="bg-white rounded-3xl p-6 shadow-sm border"><h3 class="font-bold mb-2 text-red-600">Danger Zone</h3><p class="text-xs text-slate-500 mb-3">Hapus semua data dari Firestore. Tidak bisa di-undo!</p><button @click="clearAllFirestore()" class="bg-red-600 text-white font-bold text-xs px-4 py-2 rounded-xl">Hapus Semua Data</button></div>
+<div class="bg-white rounded-3xl p-6 shadow-sm border"><h3 class="font-bold mb-2 text-red-600">Danger Zone</h3><p class="text-xs text-slate-500 mb-3">Hapus semua data dari Supabase. Tidak bisa di-undo!</p><button @click="clearAllFirestore()" class="bg-red-600 text-white font-bold text-xs px-4 py-2 rounded-xl">Hapus Semua Data</button></div>
 </div>
 </div>
 
@@ -419,6 +404,7 @@ function sipandaApp() {
         loginLoading: false,
         loginError: '',
         firestoreOnline: false,
+        supabaseOnline: false,
         databaseError: '',
         activeMenu: 'dashboard',
         searchQuery: '',
@@ -447,8 +433,8 @@ function sipandaApp() {
         selectedPegawai: null,
         selectedTab: 'identitas',
         _charts: {},
-        _unsubPegawai: null,
-        _unsubCuti: null,
+        _pegawaiChannel: null,
+        _cutiChannel: null,
         _pegawaiReady: false,
         _cutiReady: false,
 
@@ -456,8 +442,8 @@ function sipandaApp() {
             await new Promise((resolve, reject) => {
                 let attempts = 0;
                 const check = () => {
-                    if (window._fb) return resolve();
-                    if (++attempts > 300) return reject(new Error('Firebase gagal dimuat.'));
+                    if (window._supabase) return resolve();
+                    if (++attempts > 300) return reject(new Error('Supabase gagal dimuat.'));
                     setTimeout(check, 50);
                 };
                 check();
@@ -466,16 +452,39 @@ function sipandaApp() {
                 this.isLoading = false;
                 return;
             });
-            if (!window._fb) return;
+            if (!window._supabase) return;
 
-            const { auth, onAuthStateChanged } = window._fb;
-            onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    this.sessionUser = { nama: user.displayName || 'Admin', email: user.email, foto: user.photoURL || '' };
+            const supabase = window._supabase;
+            const { data: { session: currentSession } } = await supabase.auth.getSession();
+
+            if (currentSession?.user) {
+                const user = currentSession.user;
+                this.sessionUser = { nama: user.user_metadata?.nama || user.email?.split('@')[0] || 'Admin', email: user.email, foto: user.user_metadata?.foto || '' };
+                this.isAdmin = this._adminEmails.includes(user.email);
+                this.isLoggedIn = true;
+                this.loadingMsg = 'Memuat data pegawai...';
+                await this.subscribeSupabase();
+                this.isLoading = false;
+                this._recalcInterval = setInterval(() => {
+                    this.recalculateAllCountdowns();
+                    this.hitungUrgensiDanMasaBerlaku();
+                    this.updateStats();
+                }, 3600000);
+                setTimeout(() => { this.initCharts(); lucide.createIcons(); }, 500);
+            } else {
+                this.isLoggedIn = false;
+                this.isLoading = false;
+                setTimeout(() => lucide.createIcons(), 300);
+            }
+
+            supabase.auth.onAuthStateChange((event, session) => {
+                const user = session?.user;
+                if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && user) {
+                    this.sessionUser = { nama: user.user_metadata?.nama || user.email?.split('@')[0] || 'Admin', email: user.email, foto: user.user_metadata?.foto || '' };
                     this.isAdmin = this._adminEmails.includes(user.email);
                     this.isLoggedIn = true;
                     this.loadingMsg = 'Memuat data pegawai...';
-                    this.subscribeFirestore();
+                    this.subscribeSupabase();
                     this.isLoading = false;
                     this._recalcInterval = setInterval(() => {
                         this.recalculateAllCountdowns();
@@ -483,26 +492,25 @@ function sipandaApp() {
                         this.updateStats();
                     }, 3600000);
                     setTimeout(() => { this.initCharts(); lucide.createIcons(); }, 500);
-                } else {
+                } else if (event === 'SIGNED_OUT') {
                     this.isLoggedIn = false;
                     this.isLoading = false;
                     if (this._recalcInterval) { clearInterval(this._recalcInterval); this._recalcInterval = null; }
+                    this._destroyCharts();
                     setTimeout(() => lucide.createIcons(), 300);
                 }
             });
         },
 
-        async subscribeFirestore() {
-            const { db, collection, onSnapshot } = window._fb;
-            this.firestoreOnline = false;
+        async subscribeSupabase() {
+            const supabase = window._supabase;
+            this.supabaseOnline = false;
             this.databaseError = '';
-            this._pegawaiReady = false;
-            this._cutiReady = false;
 
-            // Real-time listener pegawai
-            if (this._unsubPegawai) this._unsubPegawai();
-            this._unsubPegawai = onSnapshot(collection(db, 'pegawai'), (snap) => {
-                this.pegawaiList = snap.docs.map(d => d.data());
+            try {
+                const { data: pegawaiData, error: pegawaiError } = await supabase.from('pegawai').select('*');
+                if (pegawaiError) throw pegawaiError;
+                this.pegawaiList = pegawaiData || [];
                 this.migrateData();
                 this.recalculateAllCountdowns();
                 this.hitungUrgensiDanMasaBerlaku();
@@ -511,58 +519,83 @@ function sipandaApp() {
                     this.selectedPegawai = this.pegawaiList.find(p => p.nip === this.selectedPegawai.nip) || null;
                     if (!this.selectedPegawai) this.activeMenu = 'pegawai';
                 }
-                this._pegawaiReady = true;
-                this._updateConnectionStatus();
+                this.supabaseOnline = true;
+                this.databaseError = '';
                 setTimeout(() => this.initCharts(), 300);
-            }, (err) => {
-                console.error('Firestore pegawai error:', err);
-                this._handleDatabaseError(err);
-            });
 
-            // Real-time listener cuti
-            if (this._unsubCuti) this._unsubCuti();
-            this._unsubCuti = onSnapshot(collection(db, 'cuti'), (snap) => {
-                this.cutiList = snap.docs.map(d => d.data());
+                const { data: cutiData, error: cutiError } = await supabase.from('cuti').select('*');
+                if (cutiError) throw cutiError;
+                this.cutiList = cutiData || [];
                 this.updateStats();
-                this._cutiReady = true;
-                this._updateConnectionStatus();
                 if (this.activeMenu === 'cuti') setTimeout(() => this.renderCalendar(), 100);
-            }, (err) => {
-                console.error('Firestore cuti error:', err);
-                this._handleDatabaseError(err);
-            });
+            } catch (err) {
+                console.error('Supabase error:', err);
+                this.supabaseOnline = false;
+                this.databaseError = err.message || 'Koneksi ke database gagal.';
+                if (this.databaseError.includes('does not exist') || this.databaseError.includes('relation')) {
+                    this.databaseError = 'Tabel database belum dibuat. Jalankan supabase-schema.sql di Supabase SQL Editor.';
+                }
+            }
+
+            // Real-time subscription
+            if (this._pegawaiChannel) this._pegawaiChannel.unsubscribe();
+            if (this._cutiChannel) this._cutiChannel.unsubscribe();
+
+            this._pegawaiChannel = supabase.channel('pegawai-changes')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'pegawai' }, () => {
+                    this._reloadPegawai();
+                })
+                .subscribe();
+
+            this._cutiChannel = supabase.channel('cuti-changes')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'cuti' }, () => {
+                    this._reloadCuti();
+                })
+                .subscribe();
         },
 
-        _updateConnectionStatus() {
-            this.firestoreOnline = this._pegawaiReady && this._cutiReady;
-            if (this.firestoreOnline) this.databaseError = '';
+        async _reloadPegawai() {
+            const supabase = window._supabase;
+            const { data } = await supabase.from('pegawai').select('*');
+            if (data) {
+                this.pegawaiList = data;
+                this.migrateData();
+                this.recalculateAllCountdowns();
+                this.hitungUrgensiDanMasaBerlaku();
+                this.updateStats();
+                if (this.selectedPegawai) {
+                    this.selectedPegawai = this.pegawaiList.find(p => p.nip === this.selectedPegawai.nip) || null;
+                    if (!this.selectedPegawai) this.activeMenu = 'pegawai';
+                }
+                setTimeout(() => this.initCharts(), 300);
+            }
         },
 
-        _handleDatabaseError(error) {
-            this.firestoreOnline = false;
-            const rawMessage = error?.message || 'Koneksi ke Firestore gagal.';
-            const normalized = rawMessage.toLowerCase();
-            this.databaseError = normalized.includes('service_disabled') || normalized.includes('api has not been used') || normalized.includes('disabled') || normalized.includes('failed-precondition')
-                ? 'Database Firestore belum dibuat atau Cloud Firestore API belum diaktifkan.'
-                : normalized.includes('permission-denied')
-                    ? 'Akses database ditolak. Periksa Firestore Rules.'
-                    : rawMessage;
+        async _reloadCuti() {
+            const supabase = window._supabase;
+            const { data } = await supabase.from('cuti').select('*');
+            if (data) {
+                this.cutiList = data;
+                this.updateStats();
+                if (this.activeMenu === 'cuti') setTimeout(() => this.renderCalendar(), 100);
+            }
         },
 
         async handleLogin() {
             this.loginLoading = true;
             this.loginError = '';
-            const { auth, signInWithEmailAndPassword } = window._fb;
+            const supabase = window._supabase;
             try {
-                await signInWithEmailAndPassword(auth, this.loginForm.username, this.loginForm.password);
-                // onAuthStateChanged akan handle sisanya
+                const { error } = await supabase.auth.signInWithPassword({
+                    email: this.loginForm.username,
+                    password: this.loginForm.password
+                });
+                if (error) throw error;
             } catch(e) {
                 const msg = {
-                    'auth/user-not-found': 'Email tidak ditemukan.',
-                    'auth/wrong-password': 'Password salah.',
-                    'auth/invalid-credential': 'Email atau password salah.',
-                    'auth/too-many-requests': 'Terlalu banyak percobaan. Coba lagi nanti.',
-                }[e.code] || ('Login gagal: ' + e.message);
+                    'Invalid login credentials': 'Email atau password salah.',
+                    'Email not confirmed': 'Email belum diverifikasi.',
+                }[e.message] || ('Login gagal: ' + e.message);
                 this.loginError = msg;
             } finally {
                 this.loginLoading = false;
@@ -571,61 +604,46 @@ function sipandaApp() {
 
         async handleLogout() {
             if (!confirm("Keluar dari sistem?")) return;
-            const { auth, signOut } = window._fb;
+            const supabase = window._supabase;
             try {
-                await signOut(auth);
+                if (this._pegawaiChannel) this._pegawaiChannel.unsubscribe();
+                if (this._cutiChannel) this._cutiChannel.unsubscribe();
+                await supabase.auth.signOut();
             } catch(e) { console.error('Logout error:', e); }
-            if (this._unsubPegawai) this._unsubPegawai();
-            if (this._unsubCuti) this._unsubCuti();
             if (this._recalcInterval) { clearInterval(this._recalcInterval); this._recalcInterval = null; }
-            this._destroyCharts();
         },
 
-        // ── FIRESTORE WRITE HELPERS ──────────────────────────────
+        // ── SUPABASE WRITE HELPERS ──────────────────────────────
         async _savePegawaiToFS(pegawai) {
-            const { db, doc, setDoc } = window._fb;
-            try {
-                await setDoc(doc(db, 'pegawai', pegawai.nip), pegawai);
-                return true;
-            } catch(e) {
-                console.error('Save pegawai error:', e);
-                this._handleDatabaseError(e);
-                throw new Error('Gagal menyimpan data pegawai: ' + e.message);
+            const supabase = window._supabase;
+            const { error } = await supabase.from('pegawai').upsert(pegawai, { onConflict: 'nip' });
+            if (error) {
+                console.error('Save pegawai error:', error);
+                throw new Error('Gagal menyimpan data pegawai: ' + error.message);
             }
+            return true;
         },
 
         async _deletePegawaiFromFS(nip) {
-            const { db, doc, deleteDoc } = window._fb;
-            try {
-                await deleteDoc(doc(db, 'pegawai', nip));
-            } catch(e) {
-                console.error(e);
-                this._handleDatabaseError(e);
-                throw new Error('Gagal menghapus pegawai: ' + e.message);
-            }
+            const supabase = window._supabase;
+            const { error } = await supabase.from('pegawai').delete().eq('nip', nip);
+            if (error) throw new Error('Gagal menghapus pegawai: ' + error.message);
         },
 
         async _saveCutiToFS(cuti) {
-            const { db, doc, setDoc } = window._fb;
-            try {
-                await setDoc(doc(db, 'cuti', cuti.cutiId), cuti);
-                return true;
-            } catch(e) {
-                console.error('Save cuti error:', e);
-                this._handleDatabaseError(e);
-                throw new Error('Gagal menyimpan data cuti: ' + e.message);
+            const supabase = window._supabase;
+            const { error } = await supabase.from('cuti').upsert(cuti, { onConflict: 'cutiId' });
+            if (error) {
+                console.error('Save cuti error:', error);
+                throw new Error('Gagal menyimpan data cuti: ' + error.message);
             }
+            return true;
         },
 
         async _deleteCutiFromFS(cutiId) {
-            const { db, doc, deleteDoc } = window._fb;
-            try {
-                await deleteDoc(doc(db, 'cuti', cutiId));
-            } catch(e) {
-                console.error(e);
-                this._handleDatabaseError(e);
-                throw new Error('Gagal menghapus data cuti: ' + e.message);
-            }
+            const supabase = window._supabase;
+            const { error } = await supabase.from('cuti').delete().eq('cutiId', cutiId);
+            if (error) throw new Error('Gagal menghapus data cuti: ' + error.message);
         },
 
         // ── DATA OPS ──────────────────────────────────────────────
