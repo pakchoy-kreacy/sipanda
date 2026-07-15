@@ -376,6 +376,23 @@
 </div>
 </div>
 
+<!-- TOAST NOTIFICATION -->
+<div x-show="toastCurrent" x-cloak class="fixed top-5 right-5 z-[99999] max-w-sm w-full pointer-events-none" style="transition: none">
+    <div class="pointer-events-auto px-5 py-3.5 rounded-2xl shadow-2xl text-sm font-bold flex items-center gap-3 border"
+         :class="{
+             'bg-emerald-600 text-white border-emerald-700': toastCurrent?.type === 'success',
+             'bg-red-600 text-white border-red-700': toastCurrent?.type === 'error',
+             'bg-blue-600 text-white border-blue-700': toastCurrent?.type === 'info',
+             'bg-amber-500 text-white border-amber-600': toastCurrent?.type === 'warning'
+         }">
+        <template x-if="toastCurrent?.type === 'success'"><i data-lucide="check-circle" class="w-5 h-5 flex-shrink-0"></i></template>
+        <template x-if="toastCurrent?.type === 'error'"><i data-lucide="alert-circle" class="w-5 h-5 flex-shrink-0"></i></template>
+        <template x-if="toastCurrent?.type === 'info'"><i data-lucide="info" class="w-5 h-5 flex-shrink-0"></i></template>
+        <template x-if="toastCurrent?.type === 'warning'"><i data-lucide="alert-triangle" class="w-5 h-5 flex-shrink-0"></i></template>
+        <span x-text="toastCurrent?.message" class="flex-1"></span>
+    </div>
+</div>
+
 </div>
 
 

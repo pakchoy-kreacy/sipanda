@@ -9,7 +9,7 @@ window.Sipanda.ui = {
             }
         },
         openPdfViewer(doc, type) {
-            if (!doc || (!doc.url && !doc.base64)) { alert("File belum diupload!"); return; }
+            if (!doc || (!doc.url && !doc.base64)) { this.toastWarning("File belum diupload!"); return; }
             this.currentPdfDoc = doc;
             this.currentPdfType = type;
             this.showPdfViewer = true;
@@ -36,9 +36,28 @@ window.Sipanda.ui = {
             const q = this.searchQuery.toLowerCase();
             const found = this.pegawaiList.find(p => p.nama.toLowerCase().includes(q) || p.nip.includes(q));
             if (found) { this.viewPegawaiProfileByNip(found.nip); this.searchQuery = ''; }
-            else alert("Tidak ditemukan: "+this.searchQuery);
+            else this.toastError("Tidak ditemukan: "+this.searchQuery);
         },
 
         toggleTodo(id) { const t = this.todoList.find(x => x.id === id); if (t) t.done = !t.done; },
-        addTodo() { if (this.newTodoText.trim()) { this.todoList.push({ id: Date.now(), task: this.newTodoText, done: false }); this.newTodoText = ''; } }
+        addTodo() { if (this.newTodoText.trim()) { this.todoList.push({ id: Date.now(), task: this.newTodoText, done: false }); this.newTodoText = ''; } },
+
+        toast(message, type = 'info', duration = 3500) {
+            this.toastQueue = this.toastQueue || [];
+            this.toastCurrent = this.toastCurrent || null;
+            this.toastQueue.push({ message, type, duration, id: Date.now() });
+            if (!this.toastCurrent) this._showNextToast();
+        },
+
+        toastSuccess(message) { this.toast(message, 'success', 3000); },
+        toastError(message) { this.toast(message, 'error', 5000); },
+        toastWarning(message) { this.toast(message, 'warning', 4000); },
+
+        _showNextToast() {
+            if (!this.toastQueue || !this.toastQueue.length) { this.toastCurrent = null; return; }
+            this.toastCurrent = this.toastQueue.shift();
+            const duration = this.toastCurrent.duration;
+            if (this._toastTimer) clearTimeout(this._toastTimer);
+            this._toastTimer = setTimeout(() => this._showNextToast(), duration);
+        },
 };

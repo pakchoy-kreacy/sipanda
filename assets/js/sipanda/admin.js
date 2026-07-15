@@ -4,6 +4,7 @@ window.Sipanda.admin = {
             const a = document.createElement('a');
             a.href = data; a.download = "SIPANDA_BACKUP_"+this._todayString()+".json";
             document.body.appendChild(a); a.click(); a.remove();
+            this.toastSuccess("Backup berhasil diunduh!");
         },
 
         async importDatabaseBackup(event) {
@@ -38,15 +39,15 @@ window.Sipanda.admin = {
                     for (const p of this.pegawaiList.filter(p => !pegawaiIdsBackup.has(p.nip))) await this._deletePegawaiFromFS(p.nip);
                     for (const p of json.pegawai) await this._savePegawaiToFS(p);
                     for (const c of json.cuti) await this._saveCutiToFS(c);
-                    alert("Database berhasil dipulihkan!");
-                } catch(err) { alert("Restore gagal: " + err.message); }
+                    this.toastSuccess("Database berhasil dipulihkan!");
+                } catch(err) { this.toastError(err.message); }
                 finally { event.target.value = ''; }
             };
             reader.readAsText(file);
         },
 
         async clearAllFirestore() {
-            if (!this.isAdmin) { alert("Hanya admin yang bisa menghapus semua data."); return; }
+            if (!this.isAdmin) { this.toastError("Hanya admin yang bisa menghapus semua data."); return; }
             if (!confirm("HAPUS SEMUA DATA? Ini tidak bisa di-undo!")) return;
             if (!confirm("Konfirmasi sekali lagi: hapus semua data Supabase?")) return;
             try {
@@ -54,11 +55,11 @@ window.Sipanda.admin = {
                 const cutiSnapshot = JSON.parse(JSON.stringify(this.cutiList));
                 for (const c of cutiSnapshot) await this._deleteCutiFromFS(c.cutiId);
                 for (const p of pegawaiSnapshot) await this._deletePegawaiFromFS(p.nip);
-                alert("Semua data telah dihapus.");
+                this.toastSuccess("Semua data telah dihapus.");
             } catch (error) {
-                alert("Gagal menghapus semua data: " + error.message);
+                this.toastError(error.message);
             }
         },
 
-        triggerReportExport(type) { alert("Export Laporan "+type+" — fitur PDF akan ditambahkan"); },
+        triggerReportExport(type) { this.toast("Fitur ekspor PDF akan ditambahkan segera", 'info'); },
 };

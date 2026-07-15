@@ -39,5 +39,7 @@ window.Sipanda.createState = function () {
         _cutiChannel: null,
         _pegawaiReady: false,
         _cutiReady: false,
+        toastQueue: [],
+        toastCurrent: null,
     };
 };

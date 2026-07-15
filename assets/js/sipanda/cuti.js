@@ -1,9 +1,9 @@
 window.Sipanda.cuti = {
         async saveNewCuti() {
-            if (!this.newCutiForm.nip || !this.newCutiForm.tanggalMulai || !this.newCutiForm.tanggalSelesai) { alert("Lengkapi semua field!"); return; }
-            if (this.newCutiForm.tanggalSelesai < this.newCutiForm.tanggalMulai) { alert("Tanggal selesai tidak boleh sebelum tanggal mulai."); return; }
+            if (!this.newCutiForm.nip || !this.newCutiForm.tanggalMulai || !this.newCutiForm.tanggalSelesai) { this.toastWarning("Lengkapi semua field!"); return; }
+            if (this.newCutiForm.tanggalSelesai < this.newCutiForm.tanggalMulai) { this.toastError("Tanggal selesai tidak boleh sebelum tanggal mulai."); return; }
             const peg = this.pegawaiList.find(p => p.nip === this.newCutiForm.nip);
-            if (!peg) { alert("Pegawai tidak ditemukan!"); return; }
+            if (!peg) { this.toastError("Pegawai tidak ditemukan!"); return; }
             const cuti = {
                 cutiId: "C-"+crypto.randomUUID(),
                 nip: this.newCutiForm.nip, nama: peg.nama,
@@ -17,8 +17,9 @@ window.Sipanda.cuti = {
                 this.newCutiForm = { nip:'', jenisCuti:'Cuti Tahunan', keterangan:'', tanggalMulai:'', tanggalSelesai:'' };
                 this.showModalAddCuti = false;
                 if (this.activeMenu === 'cuti') setTimeout(() => this.renderCalendar(), 300);
+                this.toastSuccess("Cuti berhasil disimpan!");
             } catch (error) {
-                alert(error.message);
+                this.toastError(error.message);
             }
         },
 
@@ -27,8 +28,9 @@ window.Sipanda.cuti = {
                 try {
                     await this._deleteCutiFromFS(id);
                     if (this.activeMenu === 'cuti') setTimeout(() => this.renderCalendar(), 300);
+                    this.toastSuccess("Data cuti berhasil dihapus.");
                 } catch (error) {
-                    alert(error.message);
+                    this.toastError(error.message);
                 }
             }
         },

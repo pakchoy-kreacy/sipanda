@@ -38,8 +38,9 @@ window.Sipanda.pegawai = {
             p.kgbCountdownDays = this._daysUntil(p.tglKgbBerikutnya);
             try {
                 await this._savePegawaiToFS(JSON.parse(JSON.stringify(p)));
+                this.toastSuccess("Data berhasil disimpan.");
             } catch (error) {
-                alert(error.message);
+                this.toastError(error.message);
             }
         },
         hitungUrgensiDanMasaBerlaku() {
@@ -76,10 +77,10 @@ window.Sipanda.pegawai = {
         },
 
         async saveNewPegawai() {
-            if (!this.newPegawaiForm.nip || !this.newPegawaiForm.nama) { alert("NIP dan Nama wajib diisi!"); return; }
+            if (!this.newPegawaiForm.nip || !this.newPegawaiForm.nama) { this.toastWarning("NIP dan Nama wajib diisi!"); return; }
             const normalizedNip = this.newPegawaiForm.nip.trim();
-            if (this.pegawaiList.some(p => p.nip === normalizedNip)) { alert("NIP sudah ada!"); return; }
-            if (!/^\d{8,20}$/.test(normalizedNip)) { alert("NIP harus terdiri dari 8-20 digit angka."); return; }
+            if (this.pegawaiList.some(p => p.nip === normalizedNip)) { this.toastError("NIP sudah ada!"); return; }
+            if (!/^\d{8,20}$/.test(normalizedNip)) { this.toastError("NIP harus terdiri dari 8-20 digit angka."); return; }
             const item = {
                 ...this.newPegawaiForm, nip: normalizedNip, nama: this.newPegawaiForm.nama.trim(),
                 namaPangkat: "", pangkatBerikutnya: "", tmtJabatan: "",
@@ -100,9 +101,9 @@ window.Sipanda.pegawai = {
                 await this._savePegawaiToFS(item);
                 this.showModalAddPegawai = false;
                 this.newPegawaiForm = { nip:'', nama:'', golongan:'II/a', jabatan:'', noHp:'', email:'', gender:'Laki-laki', tglLahir:'1995-01-01', pendidikan:'S1' };
-                alert("Pegawai berhasil ditambahkan!");
+                this.toastSuccess("Pegawai berhasil ditambahkan!");
             } catch (error) {
-                alert(error.message);
+                this.toastError(error.message);
             }
         },
 
@@ -112,7 +113,7 @@ window.Sipanda.pegawai = {
             try {
                 await this._savePegawaiToFS(JSON.parse(JSON.stringify(this.selectedPegawai)));
             } catch (error) {
-                if (showError) alert(error.message);
+                if (showError) this.toastError(error.message);
                 throw error;
             }
         },
@@ -125,17 +126,18 @@ window.Sipanda.pegawai = {
                 await this._deletePegawaiFromFS(nip);
                 this.activeMenu = 'pegawai';
                 this.selectedPegawai = null;
+                this.toastSuccess("Pegawai berhasil dihapus.");
             } catch (error) {
-                alert(error.message);
+                this.toastError(error.message);
             }
         },
         uploadFoto(event) {
             const file = event.target.files[0];
             if (!file) return;
-            if (file.size > 2*1024*1024) { alert("Max 2MB!"); event.target.value = ''; return; }
-            if (!file.type.startsWith('image/')) { alert("Harus gambar!"); event.target.value = ''; return; }
+            if (file.size > 2*1024*1024) { this.toastError("Maksimal 2MB!"); event.target.value = ''; return; }
+            if (!file.type.startsWith('image/')) { this.toastError("Harus gambar!"); event.target.value = ''; return; }
             const target = this.selectedPegawai;
-            if (!target) { alert('Pegawai tidak ditemukan.'); event.target.value = ''; return; }
+            if (!target) { this.toastError('Pegawai tidak ditemukan.'); event.target.value = ''; return; }
             const oldFoto = target.foto;
             const reader = new FileReader();
             reader.onload = async (e) => {
@@ -143,9 +145,10 @@ window.Sipanda.pegawai = {
                 try {
                     await this._savePegawaiToFS(JSON.parse(JSON.stringify(target)));
                     setTimeout(() => lucide.createIcons(), 200);
+                    this.toastSuccess("Foto berhasil diunggah!");
                 } catch (error) {
                     target.foto = oldFoto;
-                    alert('Gagal menyimpan foto: ' + error.message);
+                    this.toastError(error.message);
                 }
             };
             reader.readAsDataURL(file);
@@ -155,23 +158,23 @@ window.Sipanda.pegawai = {
         handleDocUpload(event, type) {
             const file = event.target.files[0];
             if (!file) return;
-            if (file.type !== "application/pdf") { alert("Harus PDF!"); event.target.value = ''; return; }
-            if (file.size > 5*1024*1024) { alert("Max 5MB!"); event.target.value = ''; return; }
+            if (file.type !== "application/pdf") { this.toastError("Harus PDF!"); event.target.value = ''; return; }
+            if (file.size > 5*1024*1024) { this.toastError("Maksimal 5MB!"); event.target.value = ''; return; }
             const docMap = { skPangkat: 'skPangkat', skJabatan: 'skJabatan', skKgb: 'skKgb', skp: 'skp' };
             const docKey = docMap[type];
-            if (!docKey) { alert('Jenis dokumen tidak valid.'); return; }
+            if (!docKey) { this.toastError('Jenis dokumen tidak valid.'); return; }
             const target = this.selectedPegawai;
-            if (!target) { alert('Pegawai tidak ditemukan.'); event.target.value = ''; return; }
+            if (!target) { this.toastError('Pegawai tidak ditemukan.'); event.target.value = ''; return; }
             const oldDoc = target.dokumen[docKey] ? { ...target.dokumen[docKey] } : {};
             const reader = new FileReader();
             reader.onload = async (e) => {
                 target.dokumen[docKey] = { ...oldDoc, namaFile: file.name, base64: e.target.result };
                 try {
                     await this._savePegawaiToFS(JSON.parse(JSON.stringify(target)));
-                    alert(type.toUpperCase()+" berhasil diunggah!");
+                    this.toastSuccess(type.toUpperCase()+" berhasil diunggah!");
                 } catch (error) {
                     target.dokumen[docKey] = oldDoc;
-                    alert('Gagal menyimpan dokumen: ' + error.message);
+                    this.toastError(error.message);
                 }
             };
             reader.readAsDataURL(file);
