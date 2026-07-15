@@ -289,7 +289,7 @@
   <button @click="selectedTab='cuti'" :class="selectedTab==='cuti'?'active':''" class="si-tab-btn" data-tab="cuti">Cuti/Izin/DL</button>
   <div class="si-tab-slider-indicator" id="tabIndicator"></div>
 </div>
-<div class="p-6">
+<div class="px-6 pt-6">
 
 <!-- TAB IDENTITAS -->
 <div x-show="selectedTab==='identitas'" class="space-y-5">
@@ -319,10 +319,6 @@
   </div>
 </div>
 
-<div class="si-sticky-bar">
-  <button @click="hapusPegawai(selectedPegawai.nip)" class="si-btn si-btn-xs si-btn-danger"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Hapus Pegawai</button>
-  <button @click="savePegawaiEdit()" class="si-btn si-btn-primary si-btn-sm" style="gap:7px"><i data-lucide="save" class="w-4 h-4"></i> Simpan Perubahan</button>
-</div>
 </div>
 
 <!-- TAB PANGKAT -->
@@ -353,9 +349,6 @@
     </template>
   </div>
 </div>
-<div class="si-sticky-bar">
-  <button @click="savePegawaiEdit()" class="si-btn si-btn-primary si-btn-sm" style="gap:7px"><i data-lucide="save" class="w-4 h-4"></i> Simpan Perubahan</button>
-</div>
 </div>
 
 <!-- TAB JABATAN -->
@@ -379,9 +372,6 @@
     <div class="mt-3 pointer-events-none flex items-center justify-center gap-2"><span class="text-xs text-emerald-600 font-semibold" x-text="selectedPegawai.dokumen.skJabatan.namaFile"></span><button type="button" @click.stop="openPdfViewer(selectedPegawai.dokumen.skJabatan,'SK Jabatan')" class="pointer-events-auto si-btn si-btn-xs si-btn-primary">Lihat</button></div>
     </template>
   </div>
-</div>
-<div class="si-sticky-bar">
-  <button @click="savePegawaiEdit()" class="si-btn si-btn-primary si-btn-sm" style="gap:7px"><i data-lucide="save" class="w-4 h-4"></i> Simpan Perubahan</button>
 </div>
 </div>
 
@@ -410,9 +400,6 @@
     <div class="mt-3 pointer-events-none flex items-center justify-center gap-2"><span class="text-xs text-emerald-600 font-semibold" x-text="selectedPegawai.dokumen.skKgb.namaFile"></span><button type="button" @click.stop="openPdfViewer(selectedPegawai.dokumen.skKgb,'SK KGB')" class="pointer-events-auto si-btn si-btn-xs si-btn-primary">Lihat</button></div>
     </template>
   </div>
-</div>
-<div class="si-sticky-bar">
-  <button @click="savePegawaiEdit()" class="si-btn si-btn-primary si-btn-sm" style="gap:7px"><i data-lucide="save" class="w-4 h-4"></i> Simpan Perubahan</button>
 </div>
 </div>
 
@@ -447,15 +434,17 @@
     </template>
   </div>
 </div>
-<div class="si-sticky-bar">
-  <button @click="savePegawaiEdit()" class="si-btn si-btn-primary si-btn-sm" style="gap:7px"><i data-lucide="save" class="w-4 h-4"></i> Simpan Perubahan</button>
-</div>
 </div>
 
 <!-- TAB CUTI -->
 <div x-show="selectedTab==='cuti'">
 <div class="flex justify-between items-center mb-4"><h3 class="font-semibold text-sm text-slate-700">Riwayat Cuti / Izin / DL / Sakit</h3><button @click="prefillCutiForSelected();showModalAddCuti=true" class="si-btn si-btn-xs si-btn-primary" style="gap:5px"><i data-lucide="plus" class="w-3.5 h-3.5"></i> Tambah</button></div>
 <div class="si-table-wrap"><table class="si-table" style="font-size:12px"><thead><tr><th>Jenis</th><th>Mulai</th><th>Selesai</th><th>Keterangan</th><th>Aksi</th></tr></thead><tbody><template x-for="c in cutiList.filter(c=>c.nip===selectedPegawai.nip)" :key="c.cutiId"><tr><td><span class="si-badge" :class="c.jenisCuti==='Cuti Tahunan'?'si-badge-green':c.jenisCuti==='Sakit'?'si-badge-red':c.jenisCuti==='Izin'?'si-badge-navy':'si-badge-gold'" x-text="c.jenisCuti"></span></td><td x-text="c.tanggalMulai"></td><td x-text="c.tanggalSelesai"></td><td style="color:#64748B" x-text="c.keterangan"></td><td><button @click="hapusCuti(c.cutiId)" class="si-btn si-btn-xs si-btn-danger" style="height:28px;font-size:10px;padding:0 10px">Hapus</button></td></tr></template></tbody></table></div>
+</div>
+
+<div class="si-sticky-bar" style="margin:0 -24px;width:auto">
+  <button x-show="selectedTab==='identitas'" @click="hapusPegawai(selectedPegawai.nip)" class="si-btn si-btn-xs si-btn-danger"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Hapus Pegawai</button>
+  <button x-show="selectedTab!=='cuti'" @click="savePegawaiEdit()" class="si-btn si-btn-primary si-btn-sm" style="gap:7px"><i data-lucide="save" class="w-4 h-4"></i> Simpan Perubahan</button>
 </div>
 
 </div>
@@ -533,9 +522,9 @@
 
 <!-- MODAL TAMBAH PEGAWAI -->
 <div x-show="showModalAddPegawai" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" x-cloak @click.self="showModalAddPegawai=false">
-<div class="si-card w-full max-w-lg shadow-2xl max-h-[90vh] overflow-hidden" style="border-radius:20px">
-<div class="bg-[#0B1F3A] text-white px-6 py-4 flex justify-between items-center"><h3 class="font-semibold text-sm">Tambah Pegawai Baru</h3><button @click="showModalAddPegawai=false" class="text-white/60 hover:text-white transition"><i data-lucide="x" class="w-5 h-5"></i></button></div>
-<div class="p-6 overflow-y-auto space-y-4 text-xs">
+<div class="si-card w-full max-w-lg shadow-2xl max-h-[90vh] overflow-hidden flex flex-col" style="border-radius:20px">
+<div class="bg-[#0B1F3A] text-white px-6 py-4 flex justify-between items-center flex-shrink-0"><h3 class="font-semibold text-sm">Tambah Pegawai Baru</h3><button @click="showModalAddPegawai=false" class="text-white/60 hover:text-white transition"><i data-lucide="x" class="w-5 h-5"></i></button></div>
+<div class="p-6 overflow-y-auto text-xs min-h-0 flex-1">
 <div class="grid grid-cols-2 gap-4">
 <div class="col-span-2"><label class="font-semibold text-slate-600">NIP *</label><input type="text" x-model="newPegawaiForm.nip" required class="si-input si-input-sm"></div>
 <div class="col-span-2"><label class="font-semibold text-slate-600">Nama *</label><input type="text" x-model="newPegawaiForm.nama" required class="si-input si-input-sm"></div>
@@ -545,8 +534,8 @@
 <div><label class="font-semibold text-slate-600">Tgl Lahir</label><input type="date" x-model="newPegawaiForm.tglLahir" class="si-input si-input-sm"></div>
 <div><label class="font-semibold text-slate-600">Pendidikan</label><select x-model="newPegawaiForm.pendidikan" class="si-select"><option value="SMA/SMK">SMA/SMK</option><option value="D3">D3</option><option value="S1">S1</option><option value="S2">S2</option><option value="S3">S3</option></select></div>
 </div>
-<div class="flex justify-end gap-2 pt-4 border-t border-slate-100"><button type="button" @click="showModalAddPegawai=false" class="si-btn si-btn-ghost si-btn-sm">Batal</button><button type="button" @click="saveNewPegawai()" class="si-btn si-btn-primary si-btn-sm">Simpan</button></div>
 </div>
+<div class="flex justify-end gap-2 px-6 py-4 border-t border-slate-100 bg-white flex-shrink-0"><button type="button" @click="showModalAddPegawai=false" class="si-btn si-btn-ghost si-btn-sm">Batal</button><button type="button" @click="saveNewPegawai()" class="si-btn si-btn-primary si-btn-sm"><i data-lucide="save" class="w-4 h-4"></i> Simpan</button></div>
 </div>
 </div>
 
@@ -570,8 +559,8 @@
 <!-- PDF VIEWER -->
 <div x-show="showPdfViewer" class="pdf-viewer-overlay" x-cloak @click.self="closePdfViewer()">
 <div class="pdf-viewer-container">
-<div class="pdf-viewer-header"><div><h3 class="font-bold text-sm" x-text="currentPdfDoc.namaFile"></h3><p class="text-[10px] text-slate-300" x-text="currentPdfType"></p></div><div class="flex items-center gap-2"><a :href="currentPdfDoc.base64||currentPdfDoc.url||'#'" :download="currentPdfDoc.namaFile||'dokumen.pdf'" target="_blank" rel="noopener" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center"><i data-lucide="download" class="w-4 h-4 mr-1"></i> Download</a><button type="button" aria-label="Tutup PDF" @click="closePdfViewer()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button></div></div>
-<div class="pdf-viewer-body"><iframe title="Pratinjau dokumen PDF" :src="currentPdfDoc.base64||currentPdfDoc.url"></iframe></div>
+<div class="pdf-viewer-header"><div><h3 class="font-bold text-sm" x-text="currentPdfDoc.namaFile"></h3><p class="text-[10px] text-slate-300" x-text="currentPdfType"></p></div><div class="flex items-center gap-2"><a :href="currentPdfSrc||'#'" target="_blank" rel="noopener" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center"><i data-lucide="external-link" class="w-4 h-4 mr-1"></i> Buka</a><a :href="currentPdfDoc.base64||currentPdfDoc.url||'#'" :download="currentPdfDoc.namaFile||'dokumen.pdf'" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center"><i data-lucide="download" class="w-4 h-4 mr-1"></i> Unduh</a><button type="button" aria-label="Tutup PDF" @click="closePdfViewer()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button></div></div>
+<div class="pdf-viewer-body"><iframe title="Pratinjau dokumen PDF" :src="currentPdfSrc"></iframe></div>
 </div>
 </div>
 

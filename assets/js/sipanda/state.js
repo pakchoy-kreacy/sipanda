@@ -18,6 +18,8 @@ window.Sipanda.createState = function () {
         showPdfViewer: false,
         currentPdfDoc: { namaFile: '', url: '', base64: '' },
         currentPdfType: '',
+        currentPdfSrc: '',
+        _currentPdfObjectUrl: '',
         sessionUser: { nama: 'Admin', email: '', foto: '' },
         isAdmin: false,
         _recalcInterval: null,

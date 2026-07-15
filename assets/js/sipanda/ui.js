@@ -8,15 +8,40 @@ window.Sipanda.ui = {
                 setTimeout(() => lucide.createIcons(), 200);
             }
         },
-        openPdfViewer(doc, type) {
-            if (!doc || (!doc.url && !doc.base64)) { this.toastWarning("File belum diupload!"); return; }
-            this.currentPdfDoc = doc;
-            this.currentPdfType = type;
-            this.showPdfViewer = true;
-            setTimeout(() => lucide.createIcons(), 100);
+        async openPdfViewer(doc, type) {
+            const source = doc?.base64 || doc?.url;
+            if (!source) { this.toastWarning("File belum diupload!"); return; }
+
+            this.closePdfViewer();
+            try {
+                if (source.startsWith('data:')) {
+                    const response = await fetch(source);
+                    const blob = await response.blob();
+                    this._currentPdfObjectUrl = URL.createObjectURL(blob.type === 'application/pdf'
+                        ? blob
+                        : new Blob([blob], { type: 'application/pdf' }));
+                    this.currentPdfSrc = this._currentPdfObjectUrl;
+                } else {
+                    this.currentPdfSrc = source;
+                }
+                this.currentPdfDoc = doc;
+                this.currentPdfType = type;
+                this.showPdfViewer = true;
+                setTimeout(() => lucide.createIcons(), 100);
+            } catch (error) {
+                console.error('PDF preview error:', error);
+                this.toastError("Dokumen tidak dapat dipratinjau. Silakan unduh file.");
+            }
         },
 
-        closePdfViewer() { this.showPdfViewer = false; this.currentPdfDoc = { namaFile:'', url:'', base64:'' }; },
+        closePdfViewer() {
+            this.showPdfViewer = false;
+            if (this._currentPdfObjectUrl) URL.revokeObjectURL(this._currentPdfObjectUrl);
+            this._currentPdfObjectUrl = '';
+            this.currentPdfSrc = '';
+            this.currentPdfDoc = { namaFile:'', url:'', base64:'' };
+            this.currentPdfType = '';
+        },
         getCountdownClass(days) {
             if (days === null || days === undefined || !Number.isFinite(days)) return 'text-gray-400';
             if (days < 0) return 'text-red-700 font-extrabold';
