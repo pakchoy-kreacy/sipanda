@@ -207,6 +207,7 @@
 .si-upload-zone{border:2px dashed rgba(212,160,23,.25);border-radius:14px;padding:20px;text-align:center;background:#FFFBEB;transition:all .2s ease;position:relative}
 .si-upload-zone:hover{background:#FEF3C7;border-color:rgba(212,160,23,.4)}
 .si-upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;z-index:0}
+.si-upload-actions{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px}
 
 /* ── Profile hero ── */
 .si-profile-hero{position:relative;overflow:hidden;border-radius:20px;background:linear-gradient(135deg,#0B1F3A,#0D2847);border:1px solid rgba(212,160,23,.12)}

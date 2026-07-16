@@ -15,11 +15,17 @@ window.Sipanda.ui = {
             this.closePdfViewer();
             try {
                 if (source.startsWith('data:')) {
-                    const response = await fetch(source);
-                    const blob = await response.blob();
-                    this._currentPdfObjectUrl = URL.createObjectURL(blob.type === 'application/pdf'
-                        ? blob
-                        : new Blob([blob], { type: 'application/pdf' }));
+                    const commaIndex = source.indexOf(',');
+                    if (commaIndex === -1) throw new Error('Format file Base64 tidak valid.');
+                    const header = source.slice(0, commaIndex);
+                    const mimeType = header.match(/^data:([^;]+)/)?.[1] || 'application/pdf';
+                    const encoded = source.slice(commaIndex + 1);
+                    const binary = header.includes(';base64') ? atob(encoded) : decodeURIComponent(encoded);
+                    const bytes = new Uint8Array(binary.length);
+                    for (let index = 0; index < binary.length; index++) bytes[index] = binary.charCodeAt(index);
+                    this._currentPdfObjectUrl = URL.createObjectURL(new Blob([bytes], {
+                        type: mimeType === 'application/pdf' ? mimeType : 'application/pdf'
+                    }));
                     this.currentPdfSrc = this._currentPdfObjectUrl;
                 } else {
                     this.currentPdfSrc = source;
