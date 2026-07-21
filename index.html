@@ -235,7 +235,7 @@
 
 <!-- DATA PEGAWAI -->
 <div x-show="activeMenu==='pegawai'" class="space-y-6">
-<div class="flex flex-wrap justify-between items-center gap-4"><h2 class="text-2xl font-extrabold text-[#0B1F3A]">Data Pegawai</h2><button @click="showModalAddPegawai=true" class="si-btn si-btn-primary si-btn-sm" style="gap:6px"><i data-lucide="plus" class="w-4 h-4"></i> Pegawai</button></div>
+<div class="flex flex-wrap justify-between items-center gap-4"><h2 class="text-2xl font-extrabold text-[#0B1F3A]">Data Pegawai</h2><div class="flex items-center gap-2"><button @click="showModalImportPegawai=true" class="si-btn si-btn-sm" style="gap:6px;background:#E8EEF5;color:#0B1F3A;border:1px solid #D1D9E6"><i data-lucide="upload" class="w-4 h-4"></i> Import Excel</button><button @click="showModalAddPegawai=true" class="si-btn si-btn-primary si-btn-sm" style="gap:6px"><i data-lucide="plus" class="w-4 h-4"></i> Pegawai</button></div></div>
 <div class="si-card">
   <div class="si-card-body">
     <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-5">
@@ -538,6 +538,24 @@
 </div>
 </div>
 <div class="flex justify-end gap-2 px-6 py-4 border-t border-slate-100 bg-white flex-shrink-0"><button type="button" @click="showModalAddPegawai=false" class="si-btn si-btn-ghost si-btn-sm">Batal</button><button type="button" @click="saveNewPegawai()" class="si-btn si-btn-primary si-btn-sm"><i data-lucide="save" class="w-4 h-4"></i> Simpan</button></div>
+</div>
+</div>
+
+<!-- MODAL IMPORT PEGAWAI -->
+<div x-show="showModalImportPegawai" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" x-cloak @click.self="showModalImportPegawai=false">
+<div class="si-card w-full max-w-md shadow-2xl" style="border-radius:20px">
+<div class="bg-[#0B1F3A] text-white px-6 py-4 flex justify-between items-center"><h3 class="font-semibold text-sm">Import Data Pegawai</h3><button @click="showModalImportPegawai=false" class="text-white/60 hover:text-white transition"><i data-lucide="x" class="w-5 h-5"></i></button></div>
+<div class="p-6 space-y-4 text-xs">
+<div class="bg-blue-50 border border-blue-100 rounded-xl p-4"><p class="text-blue-700 font-semibold text-sm mb-1">Cara Import:</p><ol class="text-blue-600 space-y-1 list-decimal pl-4"><li>Download template Excel di bawah</li><li>Isi data pegawai di template</li><li>Upload file yang sudah diisi</li></ol></div>
+<button @click="downloadTemplatePegawai()" class="si-btn si-btn-sm w-full" style="gap:6px;background:#E8EEF5;color:#0B1F3A;border:1px solid #D1D9E6"><i data-lucide="download" class="w-4 h-4"></i> Download Template Excel</button>
+<div class="si-upload-zone">
+  <input type="file" accept=".xlsx,.xls" @change="importPegawaiFromExcel($event)">
+  <i data-lucide="upload-cloud" class="w-7 h-7 text-[#D4A017] mx-auto"></i>
+  <p class="text-xs font-semibold text-slate-600 mt-1">Upload File Excel (.xlsx)</p>
+  <p class="text-[10px] text-slate-400 mt-0.5">Klik atau seret file ke sini</p>
+</div>
+<div class="flex justify-end pt-2"><button type="button" @click="showModalImportPegawai=false" class="si-btn si-btn-ghost si-btn-sm">Tutup</button></div>
+</div>
 </div>
 </div>
 

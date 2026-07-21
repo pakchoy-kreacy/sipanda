@@ -15,6 +15,7 @@ window.Sipanda.createState = function () {
         filterUrgensi: '',
         showModalAddPegawai: false,
         showModalAddCuti: false,
+        showModalImportPegawai: false,
         showPdfViewer: false,
         currentPdfDoc: { namaFile: '', url: '', base64: '' },
         currentPdfType: '',
