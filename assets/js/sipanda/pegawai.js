@@ -134,7 +134,7 @@ window.Sipanda.pegawai = {
         uploadFoto(event) {
             const file = event.target.files[0];
             if (!file) return;
-            if (file.size > 2*1024*1024) { this.toastError("Maksimal 2MB!"); event.target.value = ''; return; }
+            if (file.size > 1*1024*1024) { this.toastError("Maksimal 1MB!"); event.target.value = ''; return; }
             if (!file.type.startsWith('image/')) { this.toastError("Harus gambar!"); event.target.value = ''; return; }
             const target = this.selectedPegawai;
             if (!target) { this.toastError('Pegawai tidak ditemukan.'); event.target.value = ''; return; }
@@ -159,7 +159,7 @@ window.Sipanda.pegawai = {
             const file = event.target.files[0];
             if (!file) return;
             if (file.type !== "application/pdf") { this.toastError("Harus PDF!"); event.target.value = ''; return; }
-            if (file.size > 5*1024*1024) { this.toastError("Maksimal 5MB!"); event.target.value = ''; return; }
+            if (file.size > 1*1024*1024) { this.toastError("Maksimal 1MB!"); event.target.value = ''; return; }
             const docMap = { skPangkat: 'skPangkat', skJabatan: 'skJabatan', skKgb: 'skKgb', skp: 'skp' };
             const docKey = docMap[type];
             if (!docKey) { this.toastError('Jenis dokumen tidak valid.'); return; }
