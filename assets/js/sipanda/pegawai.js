@@ -180,4 +180,32 @@ window.Sipanda.pegawai = {
             reader.readAsDataURL(file);
             event.target.value = '';
         },
+
+        handleBulkDocUpload(event, nip, type) {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (file.type !== "application/pdf") { this.toastError("Harus PDF!"); event.target.value = ''; return; }
+            if (file.size > 1*1024*1024) { this.toastError("Maksimal 1MB!"); event.target.value = ''; return; }
+            const docMap = { skPangkat: 'skPangkat', skJabatan: 'skJabatan', skKgb: 'skKgb', skp: 'skp' };
+            const docKey = docMap[type];
+            if (!docKey) { this.toastError('Jenis dokumen tidak valid.'); return; }
+            const target = this.pegawaiList.find(p => p.nip === nip);
+            if (!target) { this.toastError('Pegawai tidak ditemukan.'); event.target.value = ''; return; }
+            if (!target.dokumen) target.dokumen = {};
+            if (!target.dokumen[docKey]) target.dokumen[docKey] = { namaFile:'', base64:'' };
+            const oldDoc = { ...target.dokumen[docKey] };
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                target.dokumen[docKey] = { ...oldDoc, namaFile: file.name, base64: e.target.result };
+                try {
+                    await this._savePegawaiToFS(JSON.parse(JSON.stringify(target)));
+                    this.toastSuccess(`${target.nama} — ${type.toUpperCase()} berhasil diunggah!`);
+                } catch (error) {
+                    target.dokumen[docKey] = oldDoc;
+                    this.toastError(error.message);
+                }
+            };
+            reader.readAsDataURL(file);
+            event.target.value = '';
+        },
 };

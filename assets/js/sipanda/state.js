@@ -16,6 +16,7 @@ window.Sipanda.createState = function () {
         showModalAddPegawai: false,
         showModalAddCuti: false,
         showModalImportPegawai: false,
+        showModalBulkUpload: false,
         showPdfViewer: false,
         currentPdfDoc: { namaFile: '', url: '', base64: '' },
         currentPdfType: '',

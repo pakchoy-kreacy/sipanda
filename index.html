@@ -235,7 +235,7 @@
 
 <!-- DATA PEGAWAI -->
 <div x-show="activeMenu==='pegawai'" class="space-y-6">
-<div class="flex flex-wrap justify-between items-center gap-4"><h2 class="text-2xl font-extrabold text-[#0B1F3A]">Data Pegawai</h2><div class="flex items-center gap-2"><button @click="showModalImportPegawai=true" class="si-btn si-btn-sm" style="gap:6px;background:#E8EEF5;color:#0B1F3A;border:1px solid #D1D9E6"><i data-lucide="upload" class="w-4 h-4"></i> Import Excel</button><button @click="showModalAddPegawai=true" class="si-btn si-btn-primary si-btn-sm" style="gap:6px"><i data-lucide="plus" class="w-4 h-4"></i> Pegawai</button></div></div>
+<div class="flex flex-wrap justify-between items-center gap-4"><h2 class="text-2xl font-extrabold text-[#0B1F3A]">Data Pegawai</h2><div class="flex items-center gap-2"><button @click="showModalBulkUpload=true" class="si-btn si-btn-sm" style="gap:6px;background:#E8EEF5;color:#0B1F3A;border:1px solid #D1D9E6"><i data-lucide="file-up" class="w-4 h-4"></i> Upload SK</button><button @click="showModalImportPegawai=true" class="si-btn si-btn-sm" style="gap:6px;background:#E8EEF5;color:#0B1F3A;border:1px solid #D1D9E6"><i data-lucide="upload" class="w-4 h-4"></i> Import Excel</button><button @click="showModalAddPegawai=true" class="si-btn si-btn-primary si-btn-sm" style="gap:6px"><i data-lucide="plus" class="w-4 h-4"></i> Pegawai</button></div></div>
 <div class="si-card">
   <div class="si-card-body">
     <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-5">
@@ -556,6 +556,100 @@
   <p class="text-[10px] text-slate-400 mt-0.5">Klik atau seret file ke sini</p>
 </div>
 <div class="flex justify-end pt-2"><button type="button" @click="showModalImportPegawai=false" class="si-btn si-btn-ghost si-btn-sm">Tutup</button></div>
+</div>
+</div>
+</div>
+
+<!-- MODAL UPLOAD SK MASSAL -->
+<div x-show="showModalBulkUpload" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" x-cloak @click.self="showModalBulkUpload=false">
+<div class="si-card w-full max-w-4xl shadow-2xl max-h-[90vh] overflow-hidden flex flex-col" style="border-radius:20px">
+<div class="bg-[#0B1F3A] text-white px-6 py-4 flex justify-between items-center flex-shrink-0">
+  <div><h3 class="font-semibold text-sm">Upload SK Massal</h3><p class="text-[10px] text-white/50 mt-0.5">Klik ikon ❌ untuk upload PDF. Klik ✅ untuk melihat dokumen.</p></div>
+  <button @click="showModalBulkUpload=false" class="text-white/60 hover:text-white transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+</div>
+<div class="p-4 overflow-y-auto flex-1 min-h-0">
+  <div class="si-table-wrap">
+    <table class="si-table" style="font-size:12px">
+      <thead>
+        <tr>
+          <th style="min-width:120px">NIP</th>
+          <th style="min-width:140px">Nama</th>
+          <th style="text-align:center;min-width:100px">SK Pangkat</th>
+          <th style="text-align:center;min-width:100px">SK Jabatan</th>
+          <th style="text-align:center;min-width:100px">SK KGB</th>
+          <th style="text-align:center;min-width:100px">SKP</th>
+        </tr>
+      </thead>
+      <tbody>
+        <template x-for="p in pegawaiList" :key="p.nip">
+          <tr>
+            <td><span class="text-slate-500" x-text="p.nip"></span></td>
+            <td><span class="font-semibold text-slate-800" x-text="p.nama"></span></td>
+            <td style="text-align:center">
+              <template x-if="p.dokumen && p.dokumen.skPangkat && p.dokumen.skPangkat.namaFile">
+                <div class="flex items-center justify-center gap-1.5">
+                  <span class="text-emerald-600 font-bold">✅</span>
+                  <button type="button" @click.stop.prevent="openPdfViewer(p.dokumen.skPangkat,'SK Pangkat '+p.nama)" class="si-btn si-btn-xs si-btn-primary" style="font-size:10px;height:24px;padding:0 8px">Lihat</button>
+                </div>
+              </template>
+              <template x-if="!p.dokumen || !p.dokumen.skPangkat || !p.dokumen.skPangkat.namaFile">
+                <label class="inline-flex items-center gap-1 cursor-pointer si-btn si-btn-xs si-btn-ghost" style="font-size:10px;height:24px;padding:0 8px;border:1px dashed #CBD5E1">
+                  <span>📁 Pilih</span>
+                  <input type="file" accept="application/pdf" @change="handleBulkDocUpload($event,p.nip,'skPangkat')" class="hidden">
+                </label>
+              </template>
+            </td>
+            <td style="text-align:center">
+              <template x-if="p.dokumen && p.dokumen.skJabatan && p.dokumen.skJabatan.namaFile">
+                <div class="flex items-center justify-center gap-1.5">
+                  <span class="text-emerald-600 font-bold">✅</span>
+                  <button type="button" @click.stop.prevent="openPdfViewer(p.dokumen.skJabatan,'SK Jabatan '+p.nama)" class="si-btn si-btn-xs si-btn-primary" style="font-size:10px;height:24px;padding:0 8px">Lihat</button>
+                </div>
+              </template>
+              <template x-if="!p.dokumen || !p.dokumen.skJabatan || !p.dokumen.skJabatan.namaFile">
+                <label class="inline-flex items-center gap-1 cursor-pointer si-btn si-btn-xs si-btn-ghost" style="font-size:10px;height:24px;padding:0 8px;border:1px dashed #CBD5E1">
+                  <span>📁 Pilih</span>
+                  <input type="file" accept="application/pdf" @change="handleBulkDocUpload($event,p.nip,'skJabatan')" class="hidden">
+                </label>
+              </template>
+            </td>
+            <td style="text-align:center">
+              <template x-if="p.dokumen && p.dokumen.skKgb && p.dokumen.skKgb.namaFile">
+                <div class="flex items-center justify-center gap-1.5">
+                  <span class="text-emerald-600 font-bold">✅</span>
+                  <button type="button" @click.stop.prevent="openPdfViewer(p.dokumen.skKgb,'SK KGB '+p.nama)" class="si-btn si-btn-xs si-btn-primary" style="font-size:10px;height:24px;padding:0 8px">Lihat</button>
+                </div>
+              </template>
+              <template x-if="!p.dokumen || !p.dokumen.skKgb || !p.dokumen.skKgb.namaFile">
+                <label class="inline-flex items-center gap-1 cursor-pointer si-btn si-btn-xs si-btn-ghost" style="font-size:10px;height:24px;padding:0 8px;border:1px dashed #CBD5E1">
+                  <span>📁 Pilih</span>
+                  <input type="file" accept="application/pdf" @change="handleBulkDocUpload($event,p.nip,'skKgb')" class="hidden">
+                </label>
+              </template>
+            </td>
+            <td style="text-align:center">
+              <template x-if="p.dokumen && p.dokumen.skp && p.dokumen.skp.namaFile">
+                <div class="flex items-center justify-center gap-1.5">
+                  <span class="text-emerald-600 font-bold">✅</span>
+                  <button type="button" @click.stop.prevent="openPdfViewer(p.dokumen.skp,'SKP '+p.nama)" class="si-btn si-btn-xs si-btn-primary" style="font-size:10px;height:24px;padding:0 8px">Lihat</button>
+                </div>
+              </template>
+              <template x-if="!p.dokumen || !p.dokumen.skp || !p.dokumen.skp.namaFile">
+                <label class="inline-flex items-center gap-1 cursor-pointer si-btn si-btn-xs si-btn-ghost" style="font-size:10px;height:24px;padding:0 8px;border:1px dashed #CBD5E1">
+                  <span>📁 Pilih</span>
+                  <input type="file" accept="application/pdf" @change="handleBulkDocUpload($event,p.nip,'skp')" class="hidden">
+                </label>
+              </template>
+            </td>
+          </tr>
+        </template>
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="flex justify-between items-center px-6 py-4 border-t border-slate-100 bg-white flex-shrink-0">
+  <p class="text-[11px] text-slate-400" x-text="pegawaiList.length+' pegawai'"></p>
+  <button type="button" @click="showModalBulkUpload=false" class="si-btn si-btn-ghost si-btn-sm">Tutup</button>
 </div>
 </div>
 </div>
