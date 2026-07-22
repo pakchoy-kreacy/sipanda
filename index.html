@@ -564,7 +564,7 @@
 <div x-show="showModalBulkUpload" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" x-cloak @click.self="showModalBulkUpload=false">
 <div class="si-card w-full max-w-4xl shadow-2xl max-h-[90vh] overflow-hidden flex flex-col" style="border-radius:20px">
 <div class="bg-[#0B1F3A] text-white px-6 py-4 flex justify-between items-center flex-shrink-0">
-  <div><h3 class="font-semibold text-sm">Upload SK Massal</h3><p class="text-[10px] text-white/50 mt-0.5">Klik ikon ❌ untuk upload PDF. Klik ✅ untuk melihat dokumen.</p></div>
+          <div><h3 class="font-semibold text-sm">Upload SK Massal</h3><p class="text-[10px] text-white/50 mt-0.5">Upload/Ganti/Hapus dokumen PDF per pegawai.</p></div>
   <button @click="showModalBulkUpload=false" class="text-white/60 hover:text-white transition"><i data-lucide="x" class="w-5 h-5"></i></button>
 </div>
 <div class="p-4 overflow-y-auto flex-1 min-h-0">
@@ -587,9 +587,14 @@
             <td><span class="font-semibold text-slate-800" x-text="p.nama"></span></td>
             <td style="text-align:center">
               <template x-if="p.dokumen && p.dokumen.skPangkat && p.dokumen.skPangkat.namaFile">
-                <div class="flex items-center justify-center gap-1.5">
-                  <span class="text-emerald-600 font-bold">✅</span>
-                  <button type="button" @click.stop.prevent="openPdfViewer(p.dokumen.skPangkat,'SK Pangkat '+p.nama)" class="si-btn si-btn-xs si-btn-primary" style="font-size:10px;height:24px;padding:0 8px">Lihat</button>
+                <div class="flex flex-wrap items-center justify-center gap-1">
+                  <span class="text-emerald-600 font-bold" style="font-size:14px">✅</span>
+                  <button type="button" @click.stop.prevent="openPdfViewer(p.dokumen.skPangkat,'SK Pangkat '+p.nama)" class="si-btn si-btn-xs si-btn-primary" style="font-size:10px;height:24px;padding:0 6px">Lihat</button>
+                  <label class="cursor-pointer si-btn si-btn-xs" style="font-size:10px;height:24px;padding:0 6px;background:#E8EEF5;color:#0B1F3A;border:1px solid #D1D9E6;gap:2px">
+                    <span>Edit</span>
+                    <input type="file" accept="application/pdf" @change="handleBulkDocUpload($event,p.nip,'skPangkat')" class="hidden">
+                  </label>
+                  <button type="button" @click.stop.prevent="hapusDokumen(p.nip,'skPangkat')" class="si-btn si-btn-xs si-btn-danger" style="font-size:10px;height:24px;padding:0 6px">Hapus</button>
                 </div>
               </template>
               <template x-if="!p.dokumen || !p.dokumen.skPangkat || !p.dokumen.skPangkat.namaFile">
@@ -601,9 +606,14 @@
             </td>
             <td style="text-align:center">
               <template x-if="p.dokumen && p.dokumen.skJabatan && p.dokumen.skJabatan.namaFile">
-                <div class="flex items-center justify-center gap-1.5">
-                  <span class="text-emerald-600 font-bold">✅</span>
-                  <button type="button" @click.stop.prevent="openPdfViewer(p.dokumen.skJabatan,'SK Jabatan '+p.nama)" class="si-btn si-btn-xs si-btn-primary" style="font-size:10px;height:24px;padding:0 8px">Lihat</button>
+                <div class="flex flex-wrap items-center justify-center gap-1">
+                  <span class="text-emerald-600 font-bold" style="font-size:14px">✅</span>
+                  <button type="button" @click.stop.prevent="openPdfViewer(p.dokumen.skJabatan,'SK Jabatan '+p.nama)" class="si-btn si-btn-xs si-btn-primary" style="font-size:10px;height:24px;padding:0 6px">Lihat</button>
+                  <label class="cursor-pointer si-btn si-btn-xs" style="font-size:10px;height:24px;padding:0 6px;background:#E8EEF5;color:#0B1F3A;border:1px solid #D1D9E6;gap:2px">
+                    <span>Edit</span>
+                    <input type="file" accept="application/pdf" @change="handleBulkDocUpload($event,p.nip,'skJabatan')" class="hidden">
+                  </label>
+                  <button type="button" @click.stop.prevent="hapusDokumen(p.nip,'skJabatan')" class="si-btn si-btn-xs si-btn-danger" style="font-size:10px;height:24px;padding:0 6px">Hapus</button>
                 </div>
               </template>
               <template x-if="!p.dokumen || !p.dokumen.skJabatan || !p.dokumen.skJabatan.namaFile">
@@ -615,9 +625,14 @@
             </td>
             <td style="text-align:center">
               <template x-if="p.dokumen && p.dokumen.skKgb && p.dokumen.skKgb.namaFile">
-                <div class="flex items-center justify-center gap-1.5">
-                  <span class="text-emerald-600 font-bold">✅</span>
-                  <button type="button" @click.stop.prevent="openPdfViewer(p.dokumen.skKgb,'SK KGB '+p.nama)" class="si-btn si-btn-xs si-btn-primary" style="font-size:10px;height:24px;padding:0 8px">Lihat</button>
+                <div class="flex flex-wrap items-center justify-center gap-1">
+                  <span class="text-emerald-600 font-bold" style="font-size:14px">✅</span>
+                  <button type="button" @click.stop.prevent="openPdfViewer(p.dokumen.skKgb,'SK KGB '+p.nama)" class="si-btn si-btn-xs si-btn-primary" style="font-size:10px;height:24px;padding:0 6px">Lihat</button>
+                  <label class="cursor-pointer si-btn si-btn-xs" style="font-size:10px;height:24px;padding:0 6px;background:#E8EEF5;color:#0B1F3A;border:1px solid #D1D9E6;gap:2px">
+                    <span>Edit</span>
+                    <input type="file" accept="application/pdf" @change="handleBulkDocUpload($event,p.nip,'skKgb')" class="hidden">
+                  </label>
+                  <button type="button" @click.stop.prevent="hapusDokumen(p.nip,'skKgb')" class="si-btn si-btn-xs si-btn-danger" style="font-size:10px;height:24px;padding:0 6px">Hapus</button>
                 </div>
               </template>
               <template x-if="!p.dokumen || !p.dokumen.skKgb || !p.dokumen.skKgb.namaFile">
@@ -629,9 +644,14 @@
             </td>
             <td style="text-align:center">
               <template x-if="p.dokumen && p.dokumen.skp && p.dokumen.skp.namaFile">
-                <div class="flex items-center justify-center gap-1.5">
-                  <span class="text-emerald-600 font-bold">✅</span>
-                  <button type="button" @click.stop.prevent="openPdfViewer(p.dokumen.skp,'SKP '+p.nama)" class="si-btn si-btn-xs si-btn-primary" style="font-size:10px;height:24px;padding:0 8px">Lihat</button>
+                <div class="flex flex-wrap items-center justify-center gap-1">
+                  <span class="text-emerald-600 font-bold" style="font-size:14px">✅</span>
+                  <button type="button" @click.stop.prevent="openPdfViewer(p.dokumen.skp,'SKP '+p.nama)" class="si-btn si-btn-xs si-btn-primary" style="font-size:10px;height:24px;padding:0 6px">Lihat</button>
+                  <label class="cursor-pointer si-btn si-btn-xs" style="font-size:10px;height:24px;padding:0 6px;background:#E8EEF5;color:#0B1F3A;border:1px solid #D1D9E6;gap:2px">
+                    <span>Edit</span>
+                    <input type="file" accept="application/pdf" @change="handleBulkDocUpload($event,p.nip,'skp')" class="hidden">
+                  </label>
+                  <button type="button" @click.stop.prevent="hapusDokumen(p.nip,'skp')" class="si-btn si-btn-xs si-btn-danger" style="font-size:10px;height:24px;padding:0 6px">Hapus</button>
                 </div>
               </template>
               <template x-if="!p.dokumen || !p.dokumen.skp || !p.dokumen.skp.namaFile">

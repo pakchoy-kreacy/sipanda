@@ -208,4 +208,23 @@ window.Sipanda.pegawai = {
             reader.readAsDataURL(file);
             event.target.value = '';
         },
+
+        async hapusDokumen(nip, type) {
+            if (!confirm(`Hapus dokumen ${type.toUpperCase()} pegawai ini?`)) return;
+            const docMap = { skPangkat: 'skPangkat', skJabatan: 'skJabatan', skKgb: 'skKgb', skp: 'skp' };
+            const docKey = docMap[type];
+            if (!docKey) { this.toastError('Jenis dokumen tidak valid.'); return; }
+            const target = this.pegawaiList.find(p => p.nip === nip);
+            if (!target) { this.toastError('Pegawai tidak ditemukan.'); return; }
+            if (!target.dokumen) target.dokumen = {};
+            const backup = { ...target.dokumen[docKey] };
+            target.dokumen[docKey] = { namaFile:'', base64:'' };
+            try {
+                await this._savePegawaiToFS(JSON.parse(JSON.stringify(target)));
+                this.toastSuccess(`${target.nama} — ${type.toUpperCase()} berhasil dihapus!`);
+            } catch (error) {
+                target.dokumen[docKey] = backup;
+                this.toastError(error.message);
+            }
+        },
 };
